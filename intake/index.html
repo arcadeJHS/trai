@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>:root{--fs-base:20px}html{font-size:var(--fs-base);color-scheme:light}body{margin:0;font:1rem/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#F2F4F3}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Ultra Training Intake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800;900&display=swap">
+<style>
+/* NEUBRUTALISM, as the daily card and the plan page (owner, 2026-10-02: "port to the same style
+   also the intake and all runners pages"). BoldKit's tokens, read from its source
+   (github.com/ANIBIT14/boldkit, src/styles/globals.css and its input, button, badge and alert
+   components): 3px near-black borders, hard shadows, square corners, coral / teal / yellow and its
+   success and destructive colours, Outfit; the page white. */
+:root{
+  --bk-fg:#17171C; --bk-bg:#FFFFFF; --bk-card:#FFFFFF;
+  --bk-primary:#F37777; --bk-secondary:#49D4C6; --bk-accent:#FFE46B;
+  --bk-muted:#E6E6E2; --bk-muted-fg:#5C5C66;
+  --bk-danger:#DC1313; --bk-danger-fg:#FFFFFF; --bk-success:#79E6B3; --bk-on-color:#17171C;
+  --bk-bw:3px; --bk-shadow:4px 4px 0 var(--bk-fg); --bk-shadow-sm:2px 2px 0 var(--bk-fg);
+  --bk-sans:"Outfit",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --bk-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+/* Light by default, whatever the device says (owner, 2026-10-01). BoldKit's `.dark` values stay
+   below under [data-theme="dark"], for a switch if one is ever wanted. */
+:root[data-theme="dark"]{
+  --bk-fg:#FAFAF8; --bk-bg:#17171C; --bk-card:#202027; --bk-muted:#2E2E38; --bk-muted-fg:#A1A1AA;
+}
+*{box-sizing:border-box}
+body{background:var(--bk-bg);color:var(--bk-fg);
+  font-family:var(--bk-sans);font-size:1rem;line-height:1.6;-webkit-font-smoothing:antialiased}  /* 1rem = --fs-base, the one base size: line 5, the copy of bin/athlete.py:document */
+.wrap{width:min(860px,92vw);margin:0 auto;padding:0 0 6rem;display:flex;flex-direction:column;gap:2.5rem}
+input,textarea,.mono{font-family:var(--bk-mono)}
+
+header{padding:3.25rem 0 0;display:flex;flex-direction:column;gap:.9rem}
+.eyebrow{font-weight:700;font-size:.85rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bk-muted-fg)}
+h1{font-size:clamp(2.2rem,6vw,3.6rem);line-height:.98;margin:0;font-weight:800;letter-spacing:-.01em;
+  text-transform:uppercase;text-wrap:balance}
+.lede{margin:0;color:var(--bk-muted-fg);max-width:60ch;font-size:1.06rem}
+.howto{border:var(--bk-bw) solid var(--bk-fg);background:var(--bk-muted);box-shadow:var(--bk-shadow);
+  padding:.85rem 1.1rem;font-size:.95rem;max-width:64ch}
+.howto b{font-weight:700}
+
+/* the progress bar — sticky, ruled off like the card's status strip */
+.bar{position:sticky;top:0;z-index:5;background:var(--bk-bg);border-bottom:var(--bk-bw) solid var(--bk-fg);
+  padding:.7rem 0;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.meter{flex:1 1 180px;height:.9rem;background:var(--bk-muted);border:2px solid var(--bk-fg);min-width:140px}
+.meter i{display:block;height:100%;width:0;background:var(--bk-success);transition:width .25s ease}
+.count{font-family:var(--bk-mono);font-size:.8rem;color:var(--bk-muted-fg);font-variant-numeric:tabular-nums}  /* wraps: at the 20px base the sentence is wider than a phone */
+/* BoldKit's buttons: framed and shadowed, coral for the action, white for the other; a press moves
+   them into their shadow — on tap everywhere, on hover only where there is a pointer */
+button{font-family:var(--bk-sans);font-weight:800;font-size:.92rem;letter-spacing:.06em;text-transform:uppercase;
+  cursor:pointer;background:var(--bk-primary);color:var(--bk-on-color);border:2px solid var(--bk-fg);
+  box-shadow:var(--bk-shadow-sm);padding:.42rem .9rem;transition:transform .08s,box-shadow .08s}
+button.ghost{background:var(--bk-card);color:var(--bk-fg)}
+button:active{transform:translate(2px,2px);box-shadow:none}
+@media (hover:hover){button:hover{transform:translate(2px,2px);box-shadow:none}}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--bk-fg);outline-offset:3px}
+
+section{display:flex;flex-direction:column;gap:.15rem}
+.shead{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;padding-bottom:.5rem;
+  border-bottom:var(--bk-bw) solid var(--bk-fg)}
+.snum{font-family:var(--bk-mono);font-size:.8rem;color:var(--bk-muted-fg)}
+h2{font-size:1.4rem;margin:0;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--bk-on-color);
+  border:2px solid var(--bk-fg);padding:.06rem .4rem}
+.tag.core{background:var(--bk-secondary)}
+.tag.deeper{background:var(--bk-accent)}
+.snote{font-size:.9rem;color:var(--bk-muted-fg);margin:.55rem 0 .3rem;max-width:64ch}
+
+.q{display:flex;flex-direction:column;gap:.3rem;padding:.8rem 0;border-bottom:2px solid var(--bk-muted)}
+label{display:flex;flex-direction:column;gap:.15rem;cursor:pointer}
+label .qn{font-size:1.02rem;font-weight:700;color:var(--bk-fg)}
+label .hint{font-size:.86rem;color:var(--bk-muted-fg);font-style:italic;font-weight:400}
+/* BoldKit's input: framed, square; the shadow arrives with the focus */
+input[type=text],textarea{width:100%;background:var(--bk-card);color:var(--bk-fg);border:2px solid var(--bk-fg);
+  padding:.45rem .6rem;font-size:.9rem;line-height:1.5}
+input[type=text]:focus,textarea:focus{box-shadow:var(--bk-shadow-sm)}
+input[type=text]::placeholder,textarea::placeholder{color:var(--bk-muted-fg)}
+textarea{min-height:4.6rem;resize:vertical}
+.filled input[type=text],.filled textarea{border-left:8px solid var(--bk-success)}
+
+/* the safety gate — BoldKit's destructive alert */
+section.safety .shead{border-bottom-color:var(--bk-danger)}
+section.safety h2{color:var(--bk-danger)}
+.gate{background:var(--bk-danger);color:var(--bk-danger-fg);border:var(--bk-bw) solid var(--bk-fg);
+  box-shadow:var(--bk-shadow);padding:.95rem 1.1rem;margin:.7rem 0 .5rem;font-size:.94rem}
+.gate b{color:inherit;font-weight:800}
+
+.footer-note{border-top:var(--bk-bw) solid var(--bk-fg);padding-top:1.3rem;font-size:.9rem;color:var(--bk-muted-fg);
+  display:flex;flex-direction:column;gap:.8rem}
+.actions{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
+.saved{font-family:var(--bk-mono);font-size:.78rem;color:#16794A}   /* a text green: BoldKit's success fill is unreadable as text */
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap" data-page="intake">
+
+<header>
+  <div class="eyebrow">Training plan · intake questionnaire</div>
+  <h1>Ultra Training Intake</h1>
+  <p class="lede">Everything needed to build a personalised endurance plan — and to know when the honest answer is “see a doctor first.” Answer what you can; the last section is for everything we forgot to ask. Two answers matter more than the rest: your name, which is how your plan is kept separate from everyone else's, and <em>which edition</em> of the race — the year sets how long the plan is, and therefore what shape it takes.</p>
+  <div class="howto">
+    <b>How to use it.</b> Sections marked <span class="tag core">core</span> are the minimum for a safe, useful plan — answer those first. <span class="tag deeper">deeper</span> sections sharpen it. Your answers save in this browser as you type. When you're done, press <b>Copy all answers</b> and paste them back into the conversation.
+  </div>
+</header>
+
+<div class="bar">
+  <div class="meter" role="progressbar" aria-label="Questions answered"><i id="fill"></i></div>
+  <span class="count" id="count">97 questions · the 10 core sections take ~15 min</span>
+  <button id="copy">Copy all answers</button>
+  <button class="ghost" id="clear" title="Clears every answer. Asks first.">Clear</button>
+  <span class="saved" id="saved"></span>
+</div>
+
+<section data-s="WHO · Your name">
+  <div class="shead"><span class="snum">·</span><h2>Your name</h2><span class="tag core">core</span></div>
+  <p class="snote">First, so everything that follows is filed against you and nobody else. Your name becomes your own folder — your profile, your log, your plan. Nothing you write here can reach another runner's training, and nothing of theirs reaches yours.</p>
+  <div class="q"><label><span class="qn">What should we call you?</span><span class="hint">A first name is enough. It is kept as-is and never reused for anyone else.</span></label><input type="text" data-q="Name" placeholder="e.g. Alex"></div>
+  <div class="q"><label><span class="qn">Which language should your plan be written in?</span><span class="hint">English, Italiano, Deutsch, Français or Español. Everything you will read — the plan page, the daily card, the day-by-day calendar — is written in it. This questionnaire is English only; answer it in whichever language you like.</span></label><input type="text" data-q="Preferred language" placeholder="e.g. Italiano"></div>
+</section>
+
+<section class="safety" data-s="0 · Before anything else">
+  <div class="shead"><span class="snum">00</span><h2>Before anything else</h2><span class="tag core">core</span></div>
+  <div class="gate"><b>Stop rule.</b> If you answer yes to any of the first four questions, the right next step is a doctor, not a training plan. Endurance training is a real cardiac load and a plan built over an unexamined symptom is worse than no plan.</div>
+  <div class="q"><label><span class="qn">Have you ever had chest pain, pressure or unusual breathlessness during exertion?</span><span class="hint">Yes / no — and if yes, what happened and was it investigated?</span></label><textarea data-q="Chest pain or breathlessness on exertion"></textarea></div>
+  <div class="q"><label><span class="qn">Have you ever fainted, blacked out or become seriously dizzy while exercising?</span></label><textarea data-q="Fainting or dizziness while exercising"></textarea></div>
+  <div class="q"><label><span class="qn">Any diagnosed heart condition, high blood pressure, or family history of sudden cardiac death under 50?</span></label><textarea data-q="Cardiac history, personal or family"></textarea></div>
+  <div class="q"><label><span class="qn">Are you in pain right now, or carrying an unresolved injury?</span><span class="hint">Where, how long, and does it change when you run?</span></label><textarea data-q="Current pain or unresolved injury"></textarea></div>
+  <div class="q"><label><span class="qn">Any history of disordered eating, or current worry about your relationship with food?</span><span class="hint">This changes how nutrition is written, and it's asked in good faith. Say “prefer not to say” if you'd rather.</span></label><textarea data-q="Disordered eating history or concern"></textarea></div>
+  <div class="q"><label><span class="qn">Are you pregnant, postpartum, or planning a pregnancy during the training period?</span></label><input type="text" data-q="Pregnancy / postpartum"></div>
+  <div class="q"><label><span class="qn">Any medication that affects heart rate, hydration, body temperature or altitude tolerance?</span><span class="hint">Beta blockers, diuretics, antihistamines, SSRIs, acetazolamide, and so on.</span></label><textarea data-q="Medications affecting HR, hydration, temperature or altitude"></textarea></div>
+  <div class="q"><label><span class="qn">Any bone stress injury or stress fracture, ever?</span><span class="hint">Up here rather than under &ldquo;injuries&rdquo; because it is not history &mdash; it is a standing constraint on impact loading, on barefoot running, and on how fast descent volume can rise. It is also routinely not mentioned when people list injuries.</span></label><input type="text" data-q="Bone stress injury / stress fracture history"></div>
+  <div class="q"><label><span class="qn">Have you had a medical check or clearance for endurance training? When?</span></label><input type="text" data-q="Medical clearance and date"></div>
+</section>
+
+<section data-s="1 · The race">
+  <div class="shead"><span class="snum">01</span><h2>The race</h2><span class="tag core">core</span></div>
+  <p class="snote">Everything downstream scales off this. If there's a race page, the link alone answers most of it.</p>
+  <div class="q"><label><span class="qn">Race name, <b>which edition/year</b>, and link</span><span class="hint">The year matters more than anything else on this page. It decides how long the plan is and therefore what shape it takes — a build for 30 weeks and a build for 80 are different plans, not the same plan stretched.</span></label><input type="text" data-q="Race name, edition/year, URL" placeholder="e.g. UTMB CCC, 2027 edition, https://…"></div>
+  <div class="q"><label><span class="qn">Is the exact date published yet, or estimated?</span><span class="hint">If the edition isn’t announced, say so — we estimate from the previous edition and re-check. Everything downstream is measured in weeks-to-race, so a shift of a fortnight costs nothing.</span></label><input type="text" data-q="Race date and whether confirmed or estimated"></div>
+  <div class="q"><label><span class="qn">Distance, total ascent and descent, highest point</span></label><input type="text" data-q="Distance, D+, D-, max altitude"></div>
+  <div class="q"><label><span class="qn">Start time, overall time limit, and any intermediate cutoffs</span><span class="hint">A night start changes the plan more than almost anything else.</span></label><textarea data-q="Start time, time limit, intermediate cutoffs"></textarea></div>
+  <div class="q"><label><span class="qn">Terrain and surface</span><span class="hint">Trail, road, mountain, technical rock or scree, runnable or hiking?</span></label><input type="text" data-q="Terrain and surface"></div>
+  <div class="q"><label><span class="qn">Likely weather, and how much it varies across the course</span></label><input type="text" data-q="Expected weather range"></div>
+  <div class="q"><label><span class="qn">Mandatory kit, aid station spacing, and where crew or drop bags are allowed</span></label><textarea data-q="Mandatory kit, aid stations, crew/drop bag points"></textarea></div>
+  <div class="q"><label><span class="qn">Are poles allowed?</span></label><input type="text" data-q="Poles allowed"></div>
+  <div class="q"><label><span class="qn">Is your entry confirmed, or still a lottery or qualification away?</span></label><input type="text" data-q="Entry status"></div>
+  <div class="q"><label><span class="qn">What counts as success for you?</span><span class="hint">Finishing, a time, a placing, or simply not being broken at the end. Be honest — the plan differs a lot.</span></label><textarea data-q="Definition of success"></textarea></div>
+  <div class="q"><label><span class="qn">Any other races planned before this one?</span><span class="hint">Useful — a mid-plan rehearsal race is one of the best training sessions available.</span></label><input type="text" data-q="Other races planned"></div>
+</section>
+
+<section data-s="2 · You">
+  <div class="shead"><span class="snum">02</span><h2>You</h2><span class="tag core">core</span></div>
+  <div class="q"><label><span class="qn">Age</span></label><input type="text" data-q="Age"></div>
+  <div class="q"><label><span class="qn">Sex at birth. If female: is your cycle regular (roughly monthly), irregular (over five weeks apart), or absent (three or more missed in a row)? Are you on hormonal contraception? Are your periods heavy?</span><span class="hint">Not idle curiosity: with the bone question in section 00, these drive iron, bone and energy-availability decisions — the most commonly missed parts of an endurance plan. Contraception hides the cycle signal, so say if you use it. An absent cycle never refuses you a plan; it gets a doctor involved and the plan is held, not cancelled.</span></label><textarea data-q="Sex at birth; cycle status (regular / irregular / absent); hormonal contraception; heavy periods" rows="2"></textarea></div>
+  <div class="q"><label><span class="qn">Height and weight</span></label><input type="text" data-q="Height and weight" placeholder="e.g. 178 cm, 71 kg"></div>
+  <div class="q"><label><span class="qn">Has your weight moved much in the last six months?</span><span class="hint">Direction and rough amount. A drifting weight during heavy training is a warning sign worth catching early.</span></label><input type="text" data-q="Weight trend over 6 months"></div>
+  <div class="q"><label><span class="qn">Where do you live, and at what elevation?</span><span class="hint">Town or region is enough. It sets your climate, daylight and terrain.</span></label><input type="text" data-q="Location and home elevation"></div>
+  <div class="q"><label><span class="qn">What does your working day look like physically?</span><span class="hint">Desk-bound, on your feet, manual, shift work, lots of travel?</span></label><input type="text" data-q="Occupation and daily physical load"></div>
+</section>
+
+<section data-s="3 · Running history">
+  <div class="shead"><span class="snum">03</span><h2>Running history</h2><span class="tag core">core</span></div>
+  <div class="q"><label><span class="qn">How long have you been running, and how consistently?</span></label><input type="text" data-q="Years running and consistency"></div>
+  <div class="q"><label><span class="qn">Right now: how many km or hours a week, over how many days?</span></label><input type="text" data-q="Current weekly volume and running days"></div>
+  <div class="q"><label><span class="qn">Longest run in the last three months — distance, time and ascent</span></label><input type="text" data-q="Longest run in last 3 months"></div>
+  <div class="q"><label><span class="qn">Longest run ever, and the biggest training week you've ever done</span></label><input type="text" data-q="Longest run ever; biggest week ever"></div>
+  <div class="q"><label><span class="qn">Roughly how many hours did you train in the last twelve months — all sports, running included?</span><span class="hint">A total for the year, or a typical week &times; 50. It sets how much the coming year may add: under ~400 h a year can grow ~25%, over ~500 h only ~10%, and a plan that ignores this asks for the injury it was meant to avoid. &ldquo;No idea&rdquo; is an answer; the plan then starts conservatively.</span></label><input type="text" data-q="Hours trained in the last 12 months" placeholder="e.g. 350 h, or about 7 h a week"></div>
+  <div class="q"><label><span class="qn">Any recent race results?</span><span class="hint">Any distance. A 10 km is as useful as an ultra for calibration.</span></label><textarea data-q="Recent race results"></textarea></div>
+  <div class="q"><label><span class="qn">Ultra experience: how many, how far, and how did they go?</span><span class="hint">The bad ones are more informative than the good ones.</span></label><textarea data-q="Ultra experience and how they went"></textarea></div>
+  <div class="q"><label><span class="qn">Have you had a break from running or racing? When, how long, and why?</span><span class="hint">The single most load-bearing fact about an athlete returning to the sport &mdash; and the one most often missing, because no form asks for it.</span></label><textarea data-q="Layoff history: when, how long, why"></textarea></div>
+  <div class="q"><label><span class="qn">Were your recent results run at your own effort, or paced with someone?</span><span class="hint">Asked plainly because it changes everything: a race run at a partner&rsquo;s pace is not a measurement of your ceiling, and a plan built on it aims at the wrong target.</span></label><textarea data-q="Recent results: own effort or paced with someone"></textarea></div>
+  <div class="q"><label><span class="qn">Have you run at night, or on no sleep? How did you cope?</span></label><textarea data-q="Night running and sleep-deprived running experience"></textarea></div>
+</section>
+
+<section data-s="4 · Terrain access">
+  <div class="shead"><span class="snum">04</span><h2>Terrain access</h2><span class="tag core">core</span></div>
+  <p class="snote">For any mountainous race this is the single biggest constraint on what's achievable. A plan that assumes hills you don't have is fiction.</p>
+  <div class="q"><label><span class="qn">What can you reach from your door, on foot or with a short drive?</span><span class="hint">Flat, rolling, hills, real mountains? How long is the longest continuous climb?</span></label><textarea data-q="Terrain reachable from home; longest continuous climb"></textarea></div>
+  <div class="q"><label><span class="qn">How much ascent do you currently do in a typical week?</span></label><input type="text" data-q="Current weekly vertical gain"></div>
+  <div class="q"><label><span class="qn">Can you get to proper mountains at weekends? How often, realistically?</span></label><input type="text" data-q="Weekend mountain access"></div>
+  <div class="q"><label><span class="qn">Do you have a treadmill with incline, or a long staircase?</span><span class="hint">The fallback for building vertical when the terrain isn't there.</span></label><input type="text" data-q="Treadmill incline / stairs available"></div>
+  <div class="q"><label><span class="qn">How comfortable are you descending, and on technical ground?</span><span class="hint">Confident, cautious, or actively nervous? No wrong answer — it's trainable.</span></label><textarea data-q="Descending and technical terrain confidence"></textarea></div>
+</section>
+
+<section data-s="5 · Altitude">
+  <div class="shead"><span class="snum">05</span><h2>Altitude</h2><span class="tag deeper">deeper</span></div>
+  <p class="snote">Skip this if your race stays low. Above roughly 2500 m it stops being a performance question and becomes a safety one.</p>
+  <div class="q"><label><span class="qn">What's the highest altitude you've been to, and how did you feel?</span><span class="hint">Your own history is the best available predictor — better than fitness.</span></label><textarea data-q="Highest altitude reached and how you responded"></textarea></div>
+  <div class="q"><label><span class="qn">Ever had altitude sickness — headache, nausea, poor sleep, breathlessness at rest?</span></label><textarea data-q="Altitude sickness history"></textarea></div>
+  <div class="q"><label><span class="qn">Can you spend time at altitude before the race, or arrive several days early?</span></label><textarea data-q="Pre-race altitude exposure possible"></textarea></div>
+</section>
+
+<section data-s="6 · Cross-training and strength">
+  <div class="shead"><span class="snum">06</span><h2>Cross-training and strength</h2><span class="tag core">core</span></div>
+  <div class="q"><label><span class="qn">What else do you do, and how much?</span><span class="hint">Cycling, climbing, swimming, skiing, gym — type, frequency, and roughly how hard.</span></label><textarea data-q="Other sports and activities, frequency and intensity"></textarea></div>
+  <div class="q"><label><span class="qn">Which of those are protected, and which can be dropped when volume gets high?</span><span class="hint">Important. A plan that quietly deletes the thing you love is a plan you'll abandon.</span></label><textarea data-q="Protected vs droppable activities"></textarea></div>
+  <div class="q"><label><span class="qn">Strength training: what's your experience, and what can you lift?</span><span class="hint">Working loads if you know them; “never touched a barbell” is an equally useful answer.</span></label><textarea data-q="Strength training experience and working loads"></textarea></div>
+  <div class="q"><label><span class="qn">What equipment do you actually have access to?</span><span class="hint">Full gym, barbell and rack, dumbbells, bands, bodyweight only? <b>If dumbbells: are they adjustable, and to what weight?</b> A fixed pair means progressive overload ends in about eight weeks, which changes the whole strength plan.</span></label><textarea data-q="Gym equipment access; dumbbell weight and whether adjustable"></textarea></div>
+  <div class="q"><label><span class="qn">Do you do any core, mobility or stretching now?</span></label><input type="text" data-q="Current core and mobility practice"></div>
+  <div class="q"><label><span class="qn">Five minutes, in front of a mirror or a phone camera: the strength assessment</span><span class="hint">Watching the knee from the front, stop at the first test that fails. <b>1. Air squat</b> to parallel, feet shoulder width &mdash; fail: the knees cave inward on the way down or up. <b>2. Box step</b> onto a box just below knee height, toes no more than 30 cm from it &mdash; fail: the knee drifts inward more than about 2.5 cm, or the hip swings out. <b>3. One-leg sit-to-stand</b> from a bench at 90&deg;, torso upright &mdash; fail: the knee drifts in more than about 2.5 cm. Then two for the core: <b>a strict plank</b> to loss of form (under 30 s / 30&ndash;60 s / over 60 s) and <b>straight-leg windshield wipers</b> lying on your back (none / under 5 a side / more). Say which test failed first, or that all three were clean, plus the plank time and the wiper count. It decides the first rung of your strength programme; skipped, the programme starts at technique first.</span></label><textarea data-q="Strength assessment: air squat / box step / one-leg sit-to-stand, plank, wipers"></textarea></div>
+</section>
+
+<section data-s="7 · How you like to train">
+  <div class="shead"><span class="snum">07</span><h2>How you like to train</h2><span class="tag core">core</span></div>
+  <div class="q"><label><span class="qn">How do you want effort prescribed — perceived effort, heart rate, or pace?</span><span class="hint">There's no wrong answer, but pick one. Mixing them is how plans get confusing.</span></label><input type="text" data-q="Preferred effort metric (RPE / HR / pace)"></div>
+  <div class="q"><label><span class="qn">What devices do you use, and what do you actually look at?</span></label><input type="text" data-q="Devices used and metrics actually used"></div>
+  <div class="q"><label><span class="qn">Would you train twice in a day? Do you already?</span></label><input type="text" data-q="Willingness to do doubles"></div>
+  <div class="q"><label><span class="qn">Anything unusual in how you run?</span><span class="hint">Barefoot or minimalist, poles, treadmill, running commute, always with a group.</span></label><textarea data-q="Unusual training practices (barefoot, poles, treadmill, group)"></textarea></div>
+  <div class="q"><label><span class="qn">Do you want a fixed plan, or a flexible one you adapt day to day?</span></label><input type="text" data-q="Fixed vs flexible plan preference"></div>
+  <div class="q"><label><span class="qn">What do you genuinely enjoy, and what do you dread?</span><span class="hint">A plan full of sessions you hate is a plan you won't finish. This is a real design input.</span></label><textarea data-q="Sessions enjoyed vs dreaded"></textarea></div>
+</section>
+
+<section data-s="8 · Time and life">
+  <div class="shead"><span class="snum">08</span><h2>Time and life</h2><span class="tag core">core</span></div>
+  <div class="q"><label><span class="qn">Realistically, how many hours a week can you train?</span><span class="hint">The number you'd still hit in a bad week, not the one on a good week.</span></label><input type="text" data-q="Realistic weekly training hours"></div>
+  <div class="q"><label><span class="qn">Which days, and how long on each?</span></label><textarea data-q="Available days and duration per day"></textarea></div>
+  <div class="q"><label><span class="qn">At what time of day do you usually train — and what is your earliest realistic start?</span><span class="hint">Before work, lunchtime, evening; per day if it differs, e.g. “weekdays 06:00, Saturday 07:30”. It decides how long before a session the card tells you to eat, and lets it warn you when a late session is followed by an early one.</span></label><textarea data-q="Usual training times and earliest start"></textarea></div>
+  <div class="q"><label><span class="qn">Which day can take a genuinely long session — five hours or more?</span></label><input type="text" data-q="Day available for a very long session"></div>
+  <div class="q"><label><span class="qn">What will disrupt training, and when?</span><span class="hint">Work trips, holidays, family commitments, known busy periods. Naming them now means the plan bends instead of breaking.</span></label><textarea data-q="Known disruptions and unavailable weeks"></textarea></div>
+</section>
+
+<section data-s="9 · Daily life load">
+  <div class="shead"><span class="snum">09</span><h2>Daily life load</h2><span class="tag core">core</span></div>
+  <p class="snote">Most plans count only sessions, and then wonder why you’re flat on Tuesday. For a race measured in time on feet, the rest of your day isn’t noise — it’s load, and some of it is unusually specific training.</p>
+  <div class="q"><label><span class="qn">Roughly how many hours a day are you on your feet — all in, work and home?</span><span class="hint">A rough average and a bad-day figure. This goes into the weekly budget beside training hours, not next to it.</span></label><input type="text" data-q="Hours per day on feet"></div>
+  <div class="q"><label><span class="qn">How do you get to work, and how long?</span><span class="hint">Walk, cycle, drive, train. A walking or cycling commute is real aerobic volume the plan should credit rather than ignore.</span></label><input type="text" data-q="Commute mode and duration"></div>
+  <div class="q"><label><span class="qn">Do you regularly carry or lift anything?</span><span class="hint">A small child, tools, shopping, kit. Carrying is load, and it’s closer to race-specific than most cross-training.</span></label><textarea data-q="Regular carrying or lifting in daily life"></textarea></div>
+  <div class="q"><label><span class="qn">Stairs — how many flights in a normal day?</span><span class="hint">Free vertical, and it adds up over a winter.</span></label><input type="text" data-q="Stairs in a normal day"></div>
+  <div class="q"><label><span class="qn">What do your weekends physically involve when you’re not training?</span><span class="hint">Long walks, DIY, gardening, days out with family, skiing. A day walking a city is a long easy session whether or not it was planned as one.</span></label><textarea data-q="Weekend physical life"></textarea></div>
+  <div class="q"><label><span class="qn">Anything else physical that isn’t “training”?</span><span class="hint">Dance, martial arts, manual hobbies, physical caregiving.</span></label><textarea data-q="Other non-training physical activity"></textarea></div>
+</section>
+
+<section data-s="10 · Health, injury and recovery">
+  <div class="shead"><span class="snum">10</span><h2>Health, injury and recovery</h2><span class="tag core">core</span></div>
+  <div class="q"><label><span class="qn">Injury history — what, when, and does it come back?</span><span class="hint">Recurring injuries shape the plan far more than old one-off ones.</span></label><textarea data-q="Injury history and recurrence"></textarea></div>
+  <div class="q"><label><span class="qn">Ongoing conditions, allergies or asthma?</span></label><textarea data-q="Chronic conditions, allergies, asthma"></textarea></div>
+  <div class="q"><label><span class="qn">Supplements you take now</span></label><input type="text" data-q="Current supplements"></div>
+  <div class="q"><label><span class="qn">Any recent blood work?</span><span class="hint">Ferritin, vitamin D and B12 especially — and if not, are you willing to get them done?</span></label><textarea data-q="Recent blood work (ferritin, vitamin D, B12)"></textarea></div>
+  <div class="q"><label><span class="qn">Sleep: how many hours, how regular, how good?</span><span class="hint">Typical bedtime and wake time, and whether you wake rested.</span></label><textarea data-q="Sleep duration, regularity and quality"></textarea></div>
+  <div class="q"><label><span class="qn">How stressful is life right now, outside training?</span><span class="hint">Life stress and training load draw on the same account.</span></label><input type="text" data-q="Life stress level"></div>
+  <div class="q"><label><span class="qn">Alcohol — roughly how much, how often?</span></label><input type="text" data-q="Alcohol intake"></div>
+</section>
+
+<section data-s="11 · Food and fuelling">
+  <div class="shead"><span class="snum">11</span><h2>Food and fuelling</h2><span class="tag core">core</span></div>
+  <div class="q"><label><span class="qn">How do you eat?</span><span class="hint">Omnivore, vegetarian, vegan, pescatarian — and how firm is it? Eggs, dairy, fish specifically.</span></label><textarea data-q="Dietary pattern and how strict"></textarea></div>
+  <div class="q"><label><span class="qn">Anything you can't eat, or won't?</span><span class="hint">Allergies, intolerances, and plain dislikes. Dislikes count — you won't eat it at hour fourteen either.</span></label><textarea data-q="Allergies, intolerances, dislikes"></textarea></div>
+  <div class="q"><label><span class="qn">What does a normal eating day look like?</span><span class="hint">Meal times, whether you skip breakfast, how much you cook.</span></label><textarea data-q="Typical daily eating pattern"></textarea></div>
+  <div class="q"><label><span class="qn">Do you eat before morning runs, or go fasted?</span></label><input type="text" data-q="Fasted or fed morning training"></div>
+  <div class="q"><label><span class="qn">What do you currently eat and drink during long sessions, and how much?</span><span class="hint">Products and rough amounts per hour, if you know them.</span></label><textarea data-q="Current fuelling during long sessions"></textarea></div>
+  <div class="q"><label><span class="qn">Any stomach trouble while running?</span><span class="hint">Nausea, cramping, needing a toilet, going off food late in long efforts.</span></label><textarea data-q="GI issues while running"></textarea></div>
+  <div class="q"><label><span class="qn">Do you sweat heavily? Do you get white salt marks on your kit?</span></label><input type="text" data-q="Sweat rate and salt loss"></div>
+  <div class="q"><label><span class="qn">How do you cope with cold, and with heat?</span><span class="hint">Separately. Cold ends more mountain races than heat does, and if either has caused you trouble before it becomes a trained objective rather than a kit question.</span></label><textarea data-q="Cold tolerance and heat tolerance"></textarea></div>
+  <div class="q"><label><span class="qn">Caffeine: how much, and are you sensitive to it?</span></label><input type="text" data-q="Caffeine habit and sensitivity"></div>
+  <div class="q"><label><span class="qn">Any weight or body composition goal?</span><span class="hint">Worth saying plainly so it can be timed safely, rather than colliding with the heaviest training.</span></label><input type="text" data-q="Weight or body composition goals"></div>
+</section>
+
+<section data-s="12 · Kit and logistics">
+  <div class="shead"><span class="snum">12</span><h2>Kit and logistics</h2><span class="tag core">worth it</span></div>
+  <div class="q"><label><span class="qn">What kit do you already own, and what's missing?</span><span class="hint">Vest, poles, headlamps, waterproofs, shoes and how many pairs.</span></label><textarea data-q="Kit owned vs needed"></textarea></div>
+  <div class="q"><label><span class="qn">What has gone wrong for you before?</span><span class="hint">Blisters, chafing, cramp, cold, getting lost, a dead head torch. The unglamorous list is where races are lost.</span></label><textarea data-q="Past race problems"></textarea></div>
+  <div class="q"><label><span class="qn">Have you ever dropped out of a race? What happened?</span></label><textarea data-q="DNF history and cause"></textarea></div>
+  <div class="q"><label><span class="qn">Will you have crew or support on the day?</span></label><input type="text" data-q="Crew or support available"></div>
+  <div class="q"><label><span class="qn">What is realistic on cost and travel?</span><span class="hint">Asked because plans quietly assume it: a training trip, a rehearsal race abroad, arriving days early, three pairs of shoes, blood tests. If some of that is not happening, the plan should be built without it rather than around it.</span></label><textarea data-q="Budget and travel constraints"></textarea></div>
+</section>
+
+<section data-s="13 · Head">
+  <div class="shead"><span class="snum">13</span><h2>Head</h2><span class="tag core">worth it</span></div>
+  <div class="q"><label><span class="qn">Why this race?</span><span class="hint">Genuinely useful. On a bad February morning, the answer is what gets you out.</span></label><textarea data-q="Why this race"></textarea></div>
+  <div class="q"><label><span class="qn">What worries you most about it?</span></label><textarea data-q="Biggest worry about the race"></textarea></div>
+  <div class="q"><label><span class="qn">When things have gone badly before, what actually helped?</span><span class="hint">Everyone gets a low patch in a long race. Knowing your own way out is trainable.</span></label><textarea data-q="What helps you through low patches"></textarea></div>
+  <div class="q"><label><span class="qn">How do you want to be held to it?</span><span class="hint">Firm and direct, gently, or left alone unless something's wrong?</span></label><input type="text" data-q="Preferred accountability style"></div>
+</section>
+
+<section data-s="14 · Anything else">
+  <div class="shead"><span class="snum">14</span><h2>Anything else</h2><span class="tag core">core</span></div>
+  <p class="snote">The two sections above are marked <em>worth it</em> rather than optional for a reason: what has gone wrong for you before, and what you are worried about, are usually the most load-bearing answers on the whole form. Races are lost to cold, blisters and a dead head torch far more often than to fitness. <br><br>The most useful box on the page. No structure, no right answer.</p>
+  <div class="q"><label><span class="qn">Tell me anything we haven't asked about.</span><span class="hint">Quirks, superstitions, something that worked before, something you already know breaks you, constraints that don't fit a box above.</span></label><textarea data-q="Anything else" style="min-height:8rem"></textarea></div>
+  <div class="q"><label><span class="qn">What should we have asked, and didn't?</span><span class="hint">This one improves the questionnaire itself — every answer here becomes a question for the next person.</span></label><textarea data-q="What we should have asked but didn't"></textarea></div>
+</section>
+
+<div class="footer-note">
+  <div class="actions">
+    <button id="copy2">Copy all answers</button>
+    <span class="saved" id="saved2"></span>
+  </div>
+  <p>Your answers are stored only in this browser. Nothing is sent anywhere — copy them out when you're ready.</p>
+  <p><em>This questionnaire helps build a training plan. It is not a medical assessment, and no plan built from it replaces clinical advice. If anything in section 00 gave you pause, start with a doctor.</em></p>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var KEY = "ultra-intake-v1";
+  var fields = Array.prototype.slice.call(document.querySelectorAll("[data-q]"));
+
+  function load(){
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch(e){ data = {}; }
+    fields.forEach(function(f){
+      var k = f.getAttribute("data-q");
+      if (typeof data[k] === "string") f.value = data[k];
+      mark(f);
+    });
+  }
+  function save(){
+    var data = {};
+    fields.forEach(function(f){ if (f.value.trim()) data[f.getAttribute("data-q")] = f.value; });
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){}
+    note("saved");
+  }
+  function mark(f){
+    var box = f.closest(".q");
+    if (box) box.classList.toggle("filled", !!f.value.trim());
+  }
+  function progress(){
+    var done = fields.filter(function(f){ return f.value.trim(); }).length;
+    document.getElementById("count").textContent = done
+      ? done + " / " + fields.length + " answered"
+      : fields.length + " questions · the core sections take ~15 min";
+    document.getElementById("fill").style.width = (fields.length ? (done / fields.length * 100) : 0) + "%";
+  }
+  var noteTimer;
+  function note(msg){
+    ["saved","saved2"].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.textContent = msg;
+    });
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(function(){
+      ["saved","saved2"].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.textContent = "";
+      });
+    }, 2200);
+  }
+
+  function build(){
+    var out = ["# Training intake — answers", ""];
+    Array.prototype.forEach.call(document.querySelectorAll("section"), function(sec){
+      var qs = Array.prototype.slice.call(sec.querySelectorAll("[data-q]"))
+        .filter(function(f){ return f.value.trim(); });
+      if (!qs.length) return;
+      out.push("## " + sec.getAttribute("data-s"), "");
+      qs.forEach(function(f){
+        out.push("**" + f.getAttribute("data-q") + "**");
+        out.push(f.value.trim(), "");
+      });
+    });
+    if (out.length <= 2) return "";
+    return out.join("\n");
+  }
+
+  function copy(){
+    var text = build();
+    if (!text){ note("nothing to copy yet"); return; }
+    function fallback(){
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly","");
+      ta.style.position = "fixed";
+      ta.style.top = "-1000px";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); note("copied"); }
+      catch(e){ note("copy failed — select and copy manually"); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ note("copied"); }, fallback);
+    } else fallback();
+  }
+
+  fields.forEach(function(f){
+    f.addEventListener("input", function(){ mark(f); progress(); });
+    f.addEventListener("change", save);
+    f.addEventListener("blur", save);
+  });
+  document.getElementById("copy").addEventListener("click", copy);
+  document.getElementById("copy2").addEventListener("click", copy);
+  // Clear sits one thumb-width from "Copy all answers", in a bar pinned to the top
+  // of the viewport for the whole form. Unconfirmed, that is one slip from destroying
+  // forty minutes of work on a phone. Confirm, and keep an undo.
+  var lastCleared = null;
+  document.getElementById("clear").addEventListener("click", function(){
+    var done = fields.filter(function(f){ return f.value.trim(); }).length;
+    if (done && !window.confirm("Clear all " + done + " answers?\n\nThis cannot be undone once you leave the page.")) return;
+    lastCleared = {};
+    fields.forEach(function(f){ if (f.value.trim()) lastCleared[f.getAttribute("data-q")] = f.value;
+                                f.value = ""; mark(f); });
+    try { localStorage.removeItem(KEY); } catch(e){}
+    progress();
+    note(done ? "cleared — press Clear again to undo" : "nothing to clear");
+    var btn = document.getElementById("clear");
+    btn.textContent = "Undo";
+    setTimeout(function(){ btn.textContent = "Clear"; lastCleared = null; }, 15000);
+  });
+  document.getElementById("clear").addEventListener("click", function(e){
+    if (this.textContent === "Undo" && lastCleared){
+      fields.forEach(function(f){ var v = lastCleared[f.getAttribute("data-q")];
+                                  if (v){ f.value = v; mark(f); } });
+      save(); progress(); note("restored"); this.textContent = "Clear"; lastCleared = null;
+      e.stopImmediatePropagation();
+    }
+  }, true);
+
+  load();
+  progress();
+})();
+</script>

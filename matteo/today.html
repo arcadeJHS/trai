@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>:root{--fs-base:20px}html{font-size:var(--fs-base);color-scheme:light}body{margin:0;font:1rem/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#F2F4F3}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Daily Card · Matteo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800;900&display=swap">
+<style>
+/* NEUBRUTALISM (owner, 2026-10-02: "restyle the entire today page according to the ideas of
+   neubrutalism", BoldKit as the reference). The tokens are BoldKit's own, read from its source
+   (github.com/ANIBIT14/boldkit: src/styles/globals.css and the accordion, button, card, table and
+   alert components): 3px near-black borders, hard 4px 4px 0 shadows with no blur, square corners,
+   coral / teal / yellow, Outfit, bold uppercase titles. The page itself is white (owner, the same
+   day), not BoldKit's off-white. The plan page follows the same tokens (its shells and
+   templates/plan.skeleton.html, 2026-10-02), so the two pages open alike. */
+:root{
+  --bk-fg:#17171C;        /* hsl(240 10% 10%) — text, every border, every shadow */
+  --bk-bg:#FFFFFF;        /* the page */
+  --bk-card:#FFFFFF;      /* boxes */
+  --bk-primary:#F37777;   /* hsl(0 84% 71%) coral — the one action: Copy */
+  --bk-secondary:#49D4C6; /* hsl(174 62% 56%) teal — the status strip */
+  --bk-accent:#FFE46B;    /* hsl(49 100% 71%) yellow — open, selected, asking */
+  --bk-muted:#E6E6E2;     /* hsl(60 5% 90%) */
+  --bk-muted-fg:#5C5C66;  /* hsl(240 5% 38%) */
+  --bk-danger:#DC1313;    /* hsl(0 84% 47%) */
+  --bk-danger-fg:#FFFFFF;
+  --bk-on-color:#17171C;  /* text on coral, teal and yellow: white fails contrast on all three */
+  --bk-bw:3px;
+  --bk-shadow:4px 4px 0 var(--bk-fg);
+  --bk-shadow-sm:2px 2px 0 var(--bk-fg);
+  --bk-shadow-lg:8px 8px 0 var(--bk-fg);   /* BoldKit's .bk-shadow-lg — the key sections only */
+  --bk-sans:"Outfit",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --bk-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+/* Light by default, whatever the device says (owner, 2026-10-01). BoldKit's `.dark` values stay
+   below under [data-theme="dark"], for a switch if one is ever wanted. */
+:root[data-theme="dark"]{
+  --bk-fg:#FAFAF8; --bk-bg:#17171C; --bk-card:#202027; --bk-muted:#2E2E38; --bk-muted-fg:#A1A1AA;
+}
+*{box-sizing:border-box}
+body{background:var(--bk-bg);color:var(--bk-fg);margin:0;
+  font-family:var(--bk-sans);font-size:1rem;line-height:1.6;  /* 1rem = --fs-base, the one base size: bin/athlete.py:document */
+  -webkit-font-smoothing:antialiased}
+.mono,code,pre{font-family:var(--bk-mono)}
+:focus-visible{outline:3px solid var(--bk-fg);outline-offset:3px}
+
+/* Build stamp, matching the plan page: which plan generation this card belongs to and
+   when it was written. The plan version ties the two pages together. */
+.stamp{position:sticky;top:0;z-index:10;background:var(--bk-fg);color:var(--bk-bg);
+  font-family:var(--bk-mono);font-size:.7rem;letter-spacing:.04em;
+  padding:.3rem .7rem;display:flex;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+.stamp b{font-weight:600}
+.stamp a{color:inherit}
+
+/* --- status strip: the page's whole job is answering "is this for today?" --- */
+/* Its sides match the stamp's (.7rem), so the plan link on the right lines up with "All runners". */
+.status{position:sticky;top:1.55rem;z-index:9;display:flex;flex-wrap:wrap;
+  align-items:baseline;gap:.35rem .9rem;padding:.5rem .7rem;
+  font-family:var(--bk-mono);font-size:.76rem;letter-spacing:.03em;
+  background:var(--bk-secondary);color:var(--bk-on-color);border-bottom:var(--bk-bw) solid var(--bk-fg)}
+.status.stale{background:var(--bk-danger);color:var(--bk-danger-fg)}
+.status b{font-weight:600}
+.status .grow{flex:1 1 auto}
+.status a{color:inherit;font-weight:600}
+
+/* Half the window, centred, never narrower than 680px and never past a phone's 92vw (owner,
+   2026-10-02: "the central column is very narrow"). The text fills it: no 64ch cap below. */
+.wrap{width:min(92vw,max(680px,50vw));margin:0 auto;padding:1.6rem 0 5rem}
+
+header.card-head{display:flex;flex-direction:column;gap:.6rem;
+  padding-bottom:1.1rem;border-bottom:var(--bk-bw) solid var(--bk-fg);margin-bottom:1.6rem}
+.eyebrow{font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--bk-muted-fg);margin:0}
+h1{font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.05;margin:0;font-weight:800;
+  letter-spacing:-.005em;text-transform:uppercase;text-wrap:balance}
+/* Two lines: the long date, then the headline (owner, 2026-10-02). */
+h1 .h1-line{display:block}
+.tags{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.3rem}
+.tag{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  color:var(--bk-fg);background:var(--bk-card);border:2px solid var(--bk-fg);
+  box-shadow:var(--bk-shadow-sm);padding:.15rem .55rem;white-space:nowrap}
+.tag b{font-weight:800}
+.tag.shipped{background:var(--bk-danger);color:var(--bk-danger-fg)}
+
+/* ============================================================================
+   templates/lib/card.css — HOW A CARD LOOKS, wherever it is shown: the daily card page
+   (templates/daily-card.shell.html) and the plan page's diary, the panel under an open day
+   (every plan shell, from templates/plan.skeleton.html). Spliced into each page's <style> at
+   build time by bin/card-embed.py and bin/plan-embed.py, at a line that says @@include card.css
+   inside a comment — one copy, so the diary cannot drift from the card (owner, 2026-10-02:
+   "could we use the same exact styles already used for the single today card?").
+
+   Every rule is scoped under .card, or names the folds and the session box, so the plan page's
+   own styles keep their elements and these keep the card's. Where a plan page's global rule
+   would reach a card element (every section a flex column, every table framed, every
+   paragraph capped at 66ch) a reset here says no. The tokens (--bk-*) are each page's own,
+   defined identically in both.
+   ============================================================================ */
+/* --- the rendered card --- */
+.card h2{font-size:1.3rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  margin:2.1rem 0 .7rem;padding-bottom:.35rem;border-bottom:var(--bk-bw) solid var(--bk-fg);text-wrap:balance}
+.card h3{font-size:.95rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--bk-fg);margin:1.5rem 0 .5rem}
+.card p{margin:0 0 .85rem;max-width:none}
+.card ul,.card ol{margin:0 0 .95rem;padding-left:1.15rem;display:flex;
+  flex-direction:column;gap:.32rem}
+.card strong{font-weight:700}
+.card a{color:var(--bk-fg);text-decoration-thickness:2px;text-underline-offset:2px;word-break:break-word}
+.card blockquote{margin:1.1rem 0;padding:.8rem 1rem;border:var(--bk-bw) solid var(--bk-fg);
+  background:var(--bk-muted);box-shadow:var(--bk-shadow);font-size:.96rem}
+.card blockquote.warn{background:var(--bk-accent);color:var(--bk-on-color)}
+.card blockquote p:last-child{margin-bottom:0}
+.card code{font-size:.88em;background:var(--bk-muted);padding:.08em .32em}
+.card pre{background:var(--bk-card);border:var(--bk-bw) solid var(--bk-fg);box-shadow:var(--bk-shadow);
+  padding:.75rem .9rem;overflow-x:auto;font-size:.85rem;line-height:1.5;margin:1rem 0}
+.card pre code{background:none;padding:0}
+/* BoldKit's table: the frame and the shadow on the wrapper (its own overflow does not clip its
+   shadow), the header muted, bold and uppercase. Row rules 2px rather than BoldKit's 3px — the
+   fuel tables are dense — and no zebra. */
+.card .scroll{overflow-x:auto;margin:1rem 0 1.3rem;padding:0;border:var(--bk-bw) solid var(--bk-fg);
+  box-shadow:var(--bk-shadow);background:var(--bk-card)}
+.card table{border-collapse:collapse;width:100%;font-size:.87rem;border:0;box-shadow:none;background:none}
+.card th,.card td{text-align:left;padding:.5rem .65rem;border-bottom:2px solid var(--bk-fg);
+  vertical-align:top}
+.card tbody tr:last-child td{border-bottom:0}
+.card th{font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.72rem;
+  color:var(--bk-fg);background:var(--bk-muted);border-bottom:var(--bk-bw) solid var(--bk-fg);white-space:nowrap}
+.card td:first-child{font-variant-numeric:tabular-nums}
+
+/* --- the accordions: the log form, Fuel today and the recap, ONE look (owner, 2026-10-02: "the
+   same exact style" as Log this session) — each selector below names the form's class and the
+   folds' together, so the three cannot drift apart. BoldKit's accordion: a framed, shadowed
+   item; a white header, bold and uppercase, muted under the pointer and YELLOW WHEN OPEN; the
+   body under a 3px rule; the caret at the right, drawn here from `aria-expanded` for all three
+   (log-form.js sets it on the form's toggle as fold() does on the card's folds, and foldHTML()
+   on the diary's). The folds' heading is the button, inside an H2 that adds nothing. --- */
+.fold-sec,.session-box{display:block}   /* a plan page makes every <section> a flex column */
+.logform,.fold-sec{margin:1.8rem 0 0;border:var(--bk-bw) solid var(--bk-fg);box-shadow:var(--bk-shadow);
+  background:var(--bk-card)}
+.lf-toggle,.fold{width:100%;display:flex;justify-content:space-between;align-items:center;gap:.8rem;
+  text-align:left;font-family:var(--bk-sans);font-size:1.05rem;font-weight:800;letter-spacing:.06em;
+  text-transform:uppercase;padding:.9rem 1rem;min-height:3rem;border:0;cursor:pointer;
+  background:var(--bk-card);color:var(--bk-fg)}
+.lf-body,.fold-body{padding:.9rem 1rem .2rem;border-top:var(--bk-bw) solid var(--bk-fg)}
+.card h2.fold-h{margin:0;padding:0;border:0}
+.lf-toggle::after,.fold::after{content:"▾";font-size:1.15em;line-height:1}
+@media (hover:hover){.lf-toggle:hover,.fold:hover{background:var(--bk-muted)}}
+.lf-toggle[aria-expanded="true"],.fold[aria-expanded="true"]{background:var(--bk-accent);color:var(--bk-on-color)}
+.lf-toggle[aria-expanded="true"]::after,.fold[aria-expanded="true"]::after{content:"▴"}
+
+/* --- the two KEY sections: The session and Log this session (owner, 2026-10-02: "more important
+   and should be highlighted more than the others"). BoldKit's card with a coloured header and its
+   deeper shadow, .bk-shadow-lg: the session is a framed box whose first heading is a teal title
+   bar; the log form keeps the accordions' shared rules above and only changes its header to coral,
+   the action colour, open or closed (that rule is the card page's: the diary has no form). Fuel
+   today and the recap stay white at 4px. --- */
+.key{box-shadow:var(--bk-shadow-lg)}
+.session-box{--pad:1rem;border:var(--bk-bw) solid var(--bk-fg);background:var(--bk-card);padding:0 var(--pad) .2rem}
+.session-box .card > h2:first-child{margin:0 calc(-1 * var(--pad)) .9rem;padding:.75rem var(--pad);
+  background:var(--bk-secondary);color:var(--bk-on-color);border-bottom:var(--bk-bw) solid var(--bk-fg)}
+/* On a phone the box's padding and the cells' come in, so the session table keeps its width
+   inside the frame instead of scrolling sideways (measured at 500px wide, 2026-10-02). */
+@media (max-width:600px){
+  .session-box{--pad:.55rem}
+  .card th,.card td{padding:.42rem .45rem}
+}
+/* The two boxes above the card are BoldKit alerts: red when it is urgent, yellow when it asks. */
+.health{margin:1rem 0 1.6rem;padding:.9rem 1rem;border:var(--bk-bw) solid var(--bk-fg);
+  box-shadow:var(--bk-shadow);background:var(--bk-danger);color:var(--bk-danger-fg);font-size:.95rem}
+.health.later,.health.soon{background:var(--bk-accent);color:var(--bk-on-color)}
+.health h2{margin:0 0 .4rem;font-size:1.05rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.health ul{margin:.2rem 0 .5rem 1.1rem;padding:0}
+.health code{font-weight:700}
+/* the five-minute strength test — yellow, the colour of a box that asks rather than warns */
+.strength-test{margin:1rem 0 1.6rem;padding:.9rem 1rem;border:var(--bk-bw) solid var(--bk-fg);
+  box-shadow:var(--bk-shadow);background:var(--bk-accent);color:var(--bk-on-color);font-size:.95rem}
+.strength-test.physio{background:var(--bk-danger);color:var(--bk-danger-fg)}
+.strength-test h2{margin:0 0 .4rem;font-size:1.05rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.strength-test h3{margin:1rem 0 .2rem;font-size:.95rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.strength-test p{margin:.4rem 0}
+.strength-test a{color:inherit}
+.strength-test table{border-collapse:collapse;width:100%;font-size:.85rem}
+.strength-test th,.strength-test td{text-align:left;vertical-align:top;padding:.35rem .5rem;
+  border-bottom:1px solid currentColor}
+.strength-test th{font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-size:.75rem}
+.strength-test pre{white-space:pre-wrap;margin:.3rem 0;font-size:.85rem}
+.key .lf-toggle{background:var(--bk-primary);color:var(--bk-on-color)}
+
+/* --- the log form (templates/lib/log-form.js): the app's log screen, first built here. Big tap
+   targets, scales as rows of numbered buttons, nothing to type on an ordinary day. BoldKit's
+   buttons: framed and shadowed, and a press moves them into their shadow — on tap everywhere,
+   on hover only where there is a pointer. --- */
+.lf-intro{font-size:.92rem;color:var(--bk-muted-fg);margin:.6rem 0}
+.lf-g{border:0;border-top:2px solid var(--bk-fg);margin:1rem 0 0;padding:.8rem 0 0}
+.lf-g legend{font-weight:800;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--bk-fg);padding:0 .4rem 0 0}
+.lf-q{margin:.55rem 0 .8rem}
+.lf-l{font-size:.95rem;margin:.2rem 0 .35rem}
+.lf-h{display:block;font-size:.8rem;color:var(--bk-muted-fg)}
+.lf-row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.lf-b{min-width:2.75rem;min-height:2.75rem;padding:.35rem .7rem;font:inherit;font-size:.95rem;font-weight:700;
+  border:2px solid var(--bk-fg);background:var(--bk-card);color:var(--bk-fg);box-shadow:var(--bk-shadow-sm);
+  cursor:pointer;transition:transform .08s,box-shadow .08s}
+.lf-b:active{transform:translate(2px,2px);box-shadow:none}
+@media (hover:hover){.lf-b:hover{transform:translate(2px,2px);box-shadow:none}}
+.lf-b.on{background:var(--bk-accent);color:var(--bk-on-color);font-weight:800}
+.lf-in{font:inherit;font-size:1rem;min-height:2.75rem;padding:.35rem .6rem;border:2px solid var(--bk-fg);
+  background:var(--bk-card);color:var(--bk-fg);max-width:100%}
+input.lf-in[type="number"]{width:6.5rem}
+.lf-note{width:100%}
+.lf-u{font-size:.85rem;color:var(--bk-muted-fg);margin-right:.6rem}
+.lf-n{min-width:2rem;text-align:center;font-family:var(--bk-mono)}
+.lf-ex{margin:.5rem 0 .8rem;padding:.5rem 0;border-bottom:2px dashed var(--bk-muted-fg)}
+.lf-exn{font-weight:700;margin-bottom:.3rem}
+.lf-ex .lf-in{margin-top:.4rem;width:100%}
+.lf-out{padding:.6rem 1rem 1rem;border-top:var(--bk-bw) solid var(--bk-fg)}
+.lf-progress{font-family:var(--bk-mono);font-size:.8rem;color:var(--bk-muted-fg);margin:.6rem 0}
+.lf-preview{white-space:pre-wrap;font-size:.8rem;background:var(--bk-muted);border:2px solid var(--bk-fg);
+  padding:.6rem .8rem;max-height:16rem;overflow:auto}
+.lf-actions{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:.7rem}
+.lf-actions .lf-b[data-act="copy"]{background:var(--bk-primary);color:var(--bk-on-color);
+  border:var(--bk-bw) solid var(--bk-fg);box-shadow:var(--bk-shadow);font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;min-width:7rem}
+.lf-actions .lf-b[data-act="copy"]:active{transform:translate(4px,4px);box-shadow:none}
+@media (hover:hover){.lf-actions .lf-b[data-act="copy"]:hover{transform:translate(4px,4px);box-shadow:none}}
+.lf-note-out{font-size:.88rem;font-weight:700;color:var(--bk-fg)}
+.lf-copy{width:100%;margin-top:.5rem;font-size:.75rem;border:2px solid var(--bk-fg)}
+
+/* The card's standing note, at the end of the session part (owner, 2026-10-02: it was a footer
+   under a grey rule; the footer is gone). Read as one more paragraph of the card. */
+.card-note{margin:0 0 .85rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* --- paper: bin/topdf.py prints this page with headless Chrome. PLAIN ON PAPER (owner,
+   2026-10-02): the borders stay, thinner; the hard shadows and the colour fills go — every fill
+   token turns white and every text ink — so the PDF saves ink and reads in grey. The sticky bars
+   become plain rows, and no table or heading is split across a page. --- */
+@media print{
+  :root,:root[data-theme="dark"]{
+    --bk-fg:#17171C; --bk-bg:#FFFFFF; --bk-card:#FFFFFF;
+    --bk-primary:#FFFFFF; --bk-secondary:#FFFFFF; --bk-accent:#FFFFFF; --bk-muted:#FFFFFF;
+    --bk-muted-fg:#5C5C66; --bk-danger:#FFFFFF; --bk-danger-fg:#17171C; --bk-on-color:#17171C;
+    --bk-bw:2px; --bk-shadow:none; --bk-shadow-sm:none; --bk-shadow-lg:none;
+    --fs-base:12pt;   /* paper keeps the size it always printed at (16px); the screen's base is bin/athlete.py's */
+  }
+  @page{size:A4;margin:14mm 14mm 16mm}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-size:11pt;line-height:1.5}
+  .stamp,.status{position:static}
+  .stamp{background:none;color:var(--bk-fg);border-bottom:var(--bk-bw) solid var(--bk-fg)}
+  .stamp a{display:none}
+  .wrap{width:auto;max-width:none;padding:.8rem 0 0}
+  .card table,.card tr,.card blockquote{break-inside:avoid;page-break-inside:avoid}
+  h1,h2,h3,.card th{break-after:avoid;page-break-after:avoid}
+  .status a{display:none}
+  .logform{display:none}
+  .fold-body[hidden]{display:block!important}   /* the paper card carries every fold, open */
+  .fold::after{content:none}
+}
+</style>
+
+<div class="stamp" id="stamp"><span id="stampL">card —</span><a id="homelink" href="../">…</a></div>
+<div class="status" id="status"><span class="grow" id="statusText">…</span><a id="planlink" href="#">…</a></div>
+
+<div class="wrap">
+  <header class="card-head">
+    <p class="eyebrow" id="eyebrow">&nbsp;</p>
+    <h1 id="title"><span class="h1-line" id="title-date">…</span><span class="h1-line" id="title-head"></span></h1>
+    <div class="tags" id="tags"></div>
+  </header>
+  <div id="health"></div>
+  <div id="strength-test"></div>
+  <!-- The session — the card's part before the fuel, and the note — in a KEY box (owner,
+       2026-10-02): framed, its first heading a teal title bar, the deeper shadow. -->
+  <section class="key session-box" id="session-box">
+  <main class="card" id="card"></main>
+  <!-- The card's standing note — `card_note`, painted from the payload's `i18n` block in the
+       athlete's language — at the end of the session part, before the log form (owner, 2026-10-02). -->
+  <p class="card-note" id="card-note"></p>
+  </section>
+  <!-- The log form: painted by templates/lib/log-form.js from the payload's `log_form`
+       (bin/logform.py's contract) in the athlete's language; hidden until it is painted.
+       It sits UNDER THE SESSION, before the folds (owner, 2026-10-02: "move Log this session
+       before Fuel today"): the session, the form, the fuel (folded), the recap (folded). -->
+  <section class="logform key" id="logform" hidden>
+    <button type="button" class="lf-toggle" id="lf-toggle" data-act="toggle" aria-expanded="false"
+      aria-controls="lf-body">…</button>
+    <div class="lf-body" id="lf-body" hidden></div>
+    <div class="lf-out" id="lf-out" hidden>
+      <p class="lf-progress" id="lf-progress"></p>
+      <pre class="lf-preview" id="lf-preview"></pre>
+      <div class="lf-actions" id="lf-actions"></div>
+      <textarea class="lf-copy" id="lf-copy" readonly hidden></textarea>
+    </div>
+  </section>
+  <!-- Fuel today, folded and CLOSED when the page opens (owner, 2026-10-02): fold() puts the
+       card's fuel section here, its heading as the button. Hidden when the card has none. -->
+  <section class="card fold-sec" id="fuel" hidden>
+    <h2 class="fold-h"><button type="button" class="fold" id="fuel-toggle" aria-expanded="false"
+      aria-controls="fuel-body"><span id="fuel-title"></span></button></h2>
+    <div class="fold-body" id="fuel-body" hidden></div>
+  </section>
+  <!-- The recap — whatever follows the fuel section, which bin/check.py:rule_card_sections allows
+       to be `## <recap_heading>` alone — folded and CLOSED like the fuel (owner, 2026-10-02). -->
+  <section class="card fold-sec" id="recap" hidden>
+    <h2 class="fold-h"><button type="button" class="fold" id="recap-toggle" aria-expanded="false"
+      aria-controls="recap-body"><span id="recap-title"></span></button></h2>
+    <div class="fold-body" id="recap-body" hidden></div>
+  </section>
+</div>
+
+
+<script type="application/json" id="card-data">{"for_date": "2026-10-02", "generated_at": "2026-10-01T08:13", "modality": "rest", "intensity": "rest", "week": 4, "weeks_to_race": 79, "plan_version": "3.2", "updated": "2026-10-02 15:09", "markdown": "# Today · Fri 2 Oct — Rest · the benchmark hill is tomorrow\n\n## The session\n\n| Option | Duration | Terrain | RPE | Notes |\n|---|---|---|---|---|\n| **Rest** | — | — | — | **The right choice today.** A walk is fine: it's life, not training. Bed early |\n\n**No shakeout today.** If something hurts, or the tiredness turns into a sore throat or a\ntemperature, say so before tomorrow, not after.\n\n## Fuel today\n\nToday's carbohydrate is what tomorrow's hill runs on. **This is the day that answers the\ntiredness question most cheaply**, so the day sits at the top of the easy band, and nothing new.\n\n### 1 · Breakfast — ~75 g carbohydrate / ~30 g protein\n\n| Option | What to eat |\n|---|---|\n| A | 60 g oats *(dry — ≈36 g carb, ≈8 g prot)* + banana *(≈23 g carb)* + 200 g Greek yogurt *(≈20 g prot, ≈8 g carb)* + 10 g honey *(≈8 g carb)* → **≈75 g carb / ≈28 g prot** |\n| B | 100 g bread *(≈50 g carb, ≈8 g prot)* + 30 g jam *(≈18 g carb)* + 250 g ricotta *(≈27 g prot, ≈8 g carb)* → **≈76 g carb / ≈35 g prot** |\n| C | 60 g oats *(≈36 g carb, ≈8 g prot)* + banana *(≈23 g carb)* + 1 scoop whey, 30 g of powder, in 250 ml oat milk *(≈25 g prot, ≈17 g carb)* → **≈76 g carb / ≈33 g prot** |\n\n### 2 · Lunch — ~80 g carbohydrate / ~30 g protein\n\n| Option | What to eat |\n|---|---|\n| A | 100 g pasta *(dry — ≈75 g carb, ≈12 g prot)* + vegetables + 40 g parmesan *(≈14 g prot)* + 1 egg *(≈6.5 g prot)* → **≈75 g carb / ≈32 g prot** |\n| B | 70 g rice *(dry — ≈54 g carb, ≈5 g prot)* + 50 g lentils *(dry — ≈30 g carb, ≈12 g prot)* + 40 g parmesan *(≈14 g prot)* → **≈84 g carb / ≈31 g prot** |\n| C | 130 g bread *(≈65 g carb, ≈10 g prot)* + 150 g tinned mackerel *(≈30 g prot)* + tomatoes + a piece of fruit *(≈15 g carb)* → **≈80 g carb / ≈40 g prot** |\n\n### 3 · Afternoon snack — ~40 g carbohydrate / ~25 g protein\n\n| Option | What to eat |\n|---|---|\n| A | 250 g ricotta *(≈27 g prot, ≈8 g carb)* + 20 g honey *(≈16 g carb)* + banana *(≈23 g carb)* → **≈47 g carb / ≈27 g prot** |\n| B | 200 g Greek yogurt *(≈20 g prot, ≈8 g carb)* + 20 g parmesan *(≈7 g prot)* + 20 g honey *(≈16 g carb)* + apple *(≈15 g carb)* → **≈39 g carb / ≈27 g prot** |\n| C | 1 scoop whey isolate, 30 g of powder *(≈25 g prot)* + 250 ml oat milk *(≈17 g carb)* + 30 g dates *(≈20 g carb)* → **≈37 g carb / ≈25 g prot** |\n\n### 4 · Dinner, the night before — ~85 g carbohydrate / ~35 g protein · nothing new, nothing heavy\n\n| Option | What to eat |\n|---|---|\n| A | 110 g pasta *(dry — ≈83 g carb, ≈13 g prot)* + 250 g ricotta *(≈27 g prot, ≈8 g carb)* + vegetables → **≈91 g carb / ≈40 g prot** |\n| B | 4 eggs *(≈26 g prot)* + 30 g parmesan *(≈10 g prot)* + 300 g potatoes *(≈51 g carb, ≈6 g prot)* + 60 g bread *(≈30 g carb, ≈5 g prot)* + vegetables → **≈81 g carb / ≈47 g prot** |\n| C | 100 g rice *(dry — ≈78 g carb, ≈7 g prot)* + 150 g tinned sardines or mackerel *(≈30 g prot)* + vegetables + a piece of fruit *(≈15 g carb)* → **≈93 g carb / ≈37 g prot** |\n\n| Slot | Carbohydrate | Protein |\n|---|---|---|\n| 1 · Breakfast | ~75 g | ~30 g |\n| 2 · Lunch | ~80 g | ~30 g |\n| 3 · Afternoon snack | ~40 g | ~25 g |\n| 4 · Dinner | ~85 g | ~35 g |\n| **Day** | **~280 g — 4.4 g/kg at 63 kg, the top of the easy band, on purpose** | **~120 g — towards 1.9 g/kg, four occasions** |\n\nNo session today, so no clock on any slot: the day's total is what refills you. Every carbohydrate\nfigure is **weighed dry, in the packet**: 100 g of dry pasta carries about 75 g, and weighed cooked on\nthe plate you'd get a third of that. Weigh the packet, not the plate.\n\n**For tomorrow, tonight:** decide **tomorrow's breakfast now and write it down** — the benchmark is\ncompared only with readings that had the same breakfast and the same fuel on the way up. Put **2 bars**\nin the pack for the 1 h 30′. **And set the alarm backwards from seven hours in bed**: a 05:00 start\nmeans lights out by about 21:30.\n\n### Supplements\n\n**Creatine monohydrate — 5 g, today and every day.** A level teaspoon, in anything. Timing does not\nmatter; with food is slightly better.\n\n**Whey isolate — optional**, for the snack when there is no ricotta in the house. Look for **Informed\nSport** or **NSF Certified for Sport** on the pack.\n\n## Where you are, and why this session\n\nThursday: **32′ / 4.5 km / +100 m at RPE 3, at 05:00.** The card asked for 20′ on the flat, so that\nis a little more, and a little vertical, but well inside easy. Legs 7.5/10, nothing hurt. **The\nthing to notice is the general tiredness**, the second time this week (Monday: \"stanchezza generale\ne sonno\"), with legs that feel good. That is not the flat-legs warning and not a flag. It does mean\n**rest today, not a shakeout**: tomorrow is the **fresh** benchmark, and fresh is the whole point.\n\n**Tiredness with good legs has three usual causes, and rest fixes only one of them** — accumulated\nload, low iron, or too little carbohydrate. You have never had bloods, you are vegetarian, and your\nlong days have been fuelled at a third or less of the ladder's current rung. So today you **eat at\nthe top of the easy band**, and if the tiredness is still there at Sunday's review, the next step is\n**a blood test (ferritin)**, not more rest.\n\nTomorrow, **Sat 3 Oct: the benchmark hill, fresh** — net → chapel door, runnable bits run, stairs\nwalked, RPE 3-4, the time recorded and never a target. Then down and easy on the flat, **1 h 30′ at\nmost.**", "headline": "Rest · The benchmark hill is tomorrow", "user": "matteo", "plan_url": "index.html", "home_url": "../", "card_title": "Daily Card · Matteo", "race_name": "Tenerife Bluetrail — 110K", "total_weeks": 83, "lang": "en", "i18n": {"dow": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], "mon": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], "today": "Today", "daily_card": "Daily Card", "fuel_heading": "Fuel today", "recap_heading": "Where you are, and why this session", "date_long": "{dow} {dd} {mon} {yyyy}", "dow_long": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], "mon_long": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], "week": "Week", "of": "of", "weeks_to_race": "weeks to race", "day": "day", "days": "days", "session": "session", "sessions": "sessions", "status_today": "this card is for today", "status_past": "this card was written for {date}, {n} {days} ago &nbsp;·&nbsp; log with the form below — the next card follows", "status_ahead": "showing {date}, {n} {days} ahead", "modality": "modality", "effort": "effort", "card_written": "card written", "card_note": "\u003cb>The card is derived, never authoritative.\u003c/b> Something hurts, or you skipped it? That is a log too — it costs you nothing.", "full_plan": "The full plan →", "home": "All runners", "loading": "Loading today…", "prev_week": "Previous week", "next_week": "Next week", "hours": "hours", "climb": "climb", "descent": "descent", "long": "long", "quality": "quality", "strength": "strength", "longest_descent": "longest single descent", "b2b": "back-to-back", "anchor": "anchor", "protected": "protected", "done": "done", "todo": "to do", "v_ok": "done as planned", "v_miss": "missed — a planned part was not done", "v_less": "less than planned", "v_more": "more than planned", "todays_card": "today’s card", "foot_current": "This is the current week. Days are a proposal; the anchors are not.", "foot_ahead": "Ahead of the current week — provisional, and it will be re-derived from your log before you get here.", "foot_past": "A past week, as it was planned.", "panel_card": "The card for this day", "written": "written", "logged_head": "What was logged", "th_what": "what", "th_time": "time", "th_notes": "notes", "morning_head": "That morning", "th_legs": "legs /10", "th_sleep_h": "sleep h", "th_sleep_q": "sleep /5", "th_life": "life h", "th_weight": "weight", "th_appetite": "appetite", "th_motivation": "motivation", "th_stress": "stress", "panel_nothing": "Nothing written for this day yet. It carries the week's proposal — \u003cb>{txt}\u003c/b> — which is re-derived from the log before you get here. The card is written on the morning itself.", "panel_nocard": "No card was kept for this day — it predates the card archive, so only the log survives.", "sum_session": "Session", "sum_climbing": "Climbing", "sum_descent": "Descent", "sum_long": "Long", "sum_strength": "Strength", "sum_quality": "Quality", "sum_longest": "Longest descent", "extras": {"days_min": "Days min", "back_to_back": "Back-to-back", "bike_h": "Bike", "climb": "Climb", "barefoot_max": "Barefoot max", "life_h": "Life load", "ski_h": "Ski", "me": "Muscular endurance", "hill_sprints": "Hill sprints (reps)"}, "logged_so_far": "Logged so far", "time_on_legs": "Time on legs", "distance": "Distance", "climbed": "Climbed", "descended": "Descended", "days_trained": "Days trained", "say_future": "Budgeted, not yet lived. Every number here is re-derived from your log before you reach it.", "say_finished": "A finished week: {d} {days} trained, {s} {sessions} logged.", "say_past_empty": "A past week with nothing logged against it.", "say_progress": "In progress — {d} of {m} days so far.", "say_progress_empty": "In progress, nothing logged yet this week.", "say_committed": " Committed this week: {list}.", "say_legs_note": " \u003cem>Time on legs is raw logged duration — the budget debits it by the exchange rates, so a strength session costs 0 h of session time.\u003c/em>", "week_types": {"build": "build", "calibration": "calibration", "down week": "down week", "taper": "taper", "RACE WEEK": "RACE WEEK", "race": "race", "recovery": "recovery"}, "stamp_built": "built", "stamp_commit": "plan commit", "stamp_regen": "regenerate:", "qmin": "quality minutes", "spec": "specific strength", "spec_me": "muscular endurance", "spec_hs": "hill sprints", "sess_q": "quality", "sess_me": "muscular endurance", "sess_hs": "hill sprints", "sess_hill-fresh": "benchmark hill · fresh", "sess_hill-tired": "benchmark hill · tired legs", "sess_hill-best": "benchmark hill · best effort", "replanned": "re-planned", "trig_race_date": "The race date is {race}, but the plan is built to {plan}: every block and milestone is on the wrong calendar.", "trig_layoff": "{days} days without training, up to {until}: after a layoff this long the block restarts from where you are, not where the plan was.", "trig_missed_block": "{days} days without training, up to {until}: a block missed is re-cut, not patched.", "trig_block_end": "This block ends on {end}: the next one is cut from what your log shows, not from assumptions.", "trig_load_mismatch": "Of the last {weeks} weeks, {over} came in more than 10% over their hours and {under} under 70%: the plan's load may not match your life.", "trig_new_baseline": "New measured data since the plan was made ({date}, plan from {cut}): the plan can use it.", "health_title": "The plan needs your decision", "health_do": "Answer yes in the log form on your card, or when Claude asks after your log — the plan is rebuilt for you. Nothing changes until you do.", "health_sev_now": "now", "health_sev_soon": "soon", "health_sev_later": "when convenient", "health_progress": "{block} · {weeks} weeks done · {h_done} h of {h_plan} planned · {v_done} m of {v_plan} m climbed · ends {end}", "st_title": "Take the five-minute strength test", "st_status_never": "Not done yet — your strength programme assumes you pass.", "st_status_retest": "Last result: stage {stage} on {date}. Two weeks on, it is time to retest.", "st_status_block": "Last test: {date}, before this block began. A new block starts with a retest.", "st_status_layoff": "No strength session for two weeks or more, since {date}: retest before loading again.", "st_status_physio": "Three weeks at stage {stage} without improving: see a physiotherapist before carrying on — the cause may be structural.", "st_status_last": "Last result: stage {stage} on {date}.", "st_why": "It's a quick check that knee control and core strength are good enough to justify the strength programme you're doing now. Weak lateral hip muscles let the knee collapse inward, and that's behind most overuse injuries of the knee and lower leg. Adding load to a knee that caves loads the injury.", "st_how": "You need a phone video from the front at knee height, a mirror, or someone watching. You are watching one thing only: does the knee stay over the toes, or cave inward? Do the leg tests in order and stop at the first one that fails. Do the one-leg tests on both legs.", "st_legs_head": "The three leg tests", "st_core_head": "The two core tests", "st_changes_head": "What the result changes", "st_th_test": "Test", "st_th_how": "How to do it", "st_th_fail": "Fails if", "st_th_result": "Result", "st_th_video": "Video", "st_th_changes": "What changes", "st_squat_name": "Air squat", "st_squat_how": "Feet shoulder width, down until the thighs are parallel to the floor, and back up.", "st_squat_fail": "The knees cave inward, on the way down or up.", "st_box_name": "Box step", "st_box_how": "Step up onto a box just below knee height, toes no more than 30 cm from it. Each leg.", "st_box_fail": "The knee drifts inward by more than 2.5 cm, or the hip swings out.", "st_sit_name": "One-leg sit-to-stand", "st_sit_how": "Sit on a bench with the knee bent at 90° and stand up on one leg, torso upright, without leaning forward. If it is impossible, a book or two under you. Each leg.", "st_sit_fail": "The knee moves inward by more than 2.5 cm.", "st_all_clean": "All three clean", "st_fail_to": "fail → stage {stage}", "st_clean": "clean", "st_plank_name": "Plank", "st_plank_how": "On the forearms, elbows under the shoulders, a straight line from head to heels. Time it: stop the clock the moment the hips sag or rise.", "st_plank_result": "under 30 s → stage 1 · 30–60 s → stage 2 · over 60 s → stage 3", "st_wiper_name": "Windshield wiper", "st_wiper_how": "On your back, arms out, legs straight and together, raised to vertical. Lower them to one side under control and back, then the other. Count per side. Bend the knees only if straight is impossible.", "st_wiper_result": "none → stage 1 · fewer than 5 per side → stage 2 · 5 or more → stage 3", "st_core_rule": "Your core stage is the lower of the two.", "st_res_clean_name": "All clean, or stage 3", "st_res_clean_do": "Nothing changes: your strength programme stands. The profile now says the result was measured.", "st_res_1_name": "Stage 1", "st_res_1_do": "Strength days switch to banded squats and single-leg lateral band work, 4 × 20 with 1 min rests, two or three times a week. Retest after two weeks.", "st_res_2_name": "Stage 2", "st_res_2_do": "Strength days switch to bodyweight step-up, step-down and front lunge, 3 × 15 per leg with 1-2 min rests, adding reps each session. You move on at 3 × 30 with good knee control. Retest after two weeks.", "st_res_physio_name": "No clear improvement after three weeks at stage 1 or 2", "st_res_physio_do": "See a physiotherapist: the cause may be structural.", "st_report": "How to report it: add it to your next {cmd}, for example:", "st_report_example": "strength test: squat clean, box step clean, one-leg sit-to-stand right knee in; plank 55 s; wipers 4 per side", "st_when": "When: on a strength day, before the session — the tests double as its warm-up."}, "health": {"evaluated_on": "2026-10-01", "fired": [{"id": "new-baseline", "severity": "later", "action": "/rebuild", "reason": "New measured data since the plan was made (2026-09-19, plan from 2026-09-14): the plan can use it."}], "progress": {"block": "B0 Re-entry", "weeks": "3 of 10", "h_plan": "17.1", "h_done": "29.4", "v_plan": "4400", "v_done": "7377", "end": "2026-11-15"}}, "strength_test": {"show": false, "due": false, "reason": "", "physio": false, "as_of": "2026-10-02", "since": "", "next": "2026-11-16", "last": {"date": "2026-09-30", "strength_stage": "3", "core_stage": "3"}, "videos": {"air-squat-test": ["https://www.youtube.com/watch?v=-6PBNTLDtaI", "https://www.youtube.com/watch?v=SCrfEpYuRR8"], "box-step-test": ["https://www.youtube.com/watch?v=24N7qBmKz6s"], "step-up": ["https://www.youtube.com/watch?v=vOiHvzj5XhA", "https://www.youtube.com/watch?v=z_o0-64BofU"], "one-leg-sit-to-stand": ["https://www.youtube.com/watch?v=f2uaLLnM8v0", "https://www.youtube.com/watch?v=y-v4seZ7eZ8"], "plank-to-form": ["https://www.youtube.com/watch?v=HXev1fIbLLQ"], "windshield-wiper": ["https://www.youtube.com/watch?v=NAA9pT_PplE", "https://www.youtube.com/watch?v=R_Kx7RTr95s"], "banded-squat": ["https://www.youtube.com/watch?v=KXWyWQ2lSCM"], "single-leg-lateral-band": ["https://www.youtube.com/watch?v=QWpILKBEoWs"], "eccentric-step-down": ["https://www.youtube.com/watch?v=SZXOPRVP1Oc"], "front-lunge": ["https://www.youtube.com/watch?v=s4xvXlP6jbc"]}}, "log_form": {"version": 1, "user": "matteo", "for_date": "2026-10-02", "card": {"modality": "rest", "intensity": "rest"}, "sessions": [], "exercises": [], "hill": null, "weekly": false, "regions": ["achilles", "calf", "foot", "glute", "groin", "hamstring", "hip", "knee", "low-back", "quad", "shin", "systemic", "upper-body"], "types": ["run", "long", "quality", "barefoot", "hike", "climb", "bike", "ski", "swim", "race", "gym", "life"], "status": ["as-written", "easier", "harder", "skipped"], "max_sessions": 4, "fields": [{"key": "did", "kind": "choice", "group": "did", "options": ["proposed", "different", "skipped", "rest"], "important": 1}, {"key": "skip_reason", "kind": "choice", "group": "did", "options": ["no-time", "tired", "ill", "pain", "other"]}, {"key": "legs", "kind": "scale", "group": "morning", "min": 1, "max": 10, "step": 0.5, "important": 2}, {"key": "sleep_h", "kind": "number", "group": "morning", "min": 0, "max": 16, "step": 0.5, "important": 5}, {"key": "sleep_q", "kind": "scale", "group": "morning", "min": 1, "max": 5, "step": 1, "important": 6}, {"key": "motivation", "kind": "scale", "group": "morning", "min": 1, "max": 5, "step": 1, "important": 7}, {"key": "stress", "kind": "scale", "group": "morning", "min": 1, "max": 5, "step": 1, "important": 8}, {"key": "life_h", "kind": "number", "group": "morning", "min": 0, "max": 24, "step": 0.5}, {"key": "weight", "kind": "number", "group": "weekly", "min": 25, "max": 250, "step": 0.1}, {"key": "appetite", "kind": "choice", "group": "weekly", "options": ["low", "normal", "high"]}, {"key": "type", "kind": "choice", "group": "session", "options": ["run", "long", "quality", "barefoot", "hike", "climb", "bike", "ski", "swim", "race", "gym", "life"]}, {"key": "dur", "kind": "duration", "group": "session", "important": 3}, {"key": "start", "kind": "clock", "group": "session"}, {"key": "km", "kind": "number", "group": "endurance", "min": 0, "max": 300, "step": 0.1}, {"key": "up", "kind": "number", "group": "endurance", "min": 0, "max": 15000, "step": 10}, {"key": "down", "kind": "number", "group": "endurance", "min": 0, "max": 15000, "step": 10}, {"key": "rpe", "kind": "rpe", "group": "endurance", "important": 4}, {"key": "bars", "kind": "count", "group": "endurance", "min": 0, "max": 30}, {"key": "gels", "kind": "count", "group": "endurance", "min": 0, "max": 30}, {"key": "scoops", "kind": "count", "group": "endurance", "min": 0, "max": 30}, {"key": "carb_g", "kind": "number", "group": "endurance", "min": 0, "max": 1000, "step": 5}, {"key": "legs_after", "kind": "scale", "group": "endurance", "min": 1, "max": 10, "step": 0.5}, {"key": "reps_left", "kind": "scale", "group": "gym", "min": 1, "max": 6, "step": 1, "important": 4}, {"key": "ex", "kind": "exercise", "group": "gym"}, {"key": "hill.time", "kind": "mmss", "group": "hill", "important": 1}, {"key": "hill.rpe", "kind": "rpe", "group": "hill"}, {"key": "hill.pre_min", "kind": "number", "group": "hill", "min": 0, "max": 600, "step": 1}, {"key": "hill.pre_up", "kind": "number", "group": "hill", "min": 0, "max": 10000, "step": 10}, {"key": "hill.pre_down", "kind": "number", "group": "hill", "min": 0, "max": 10000, "step": 10}, {"key": "hill.breakfast", "kind": "text", "group": "hill"}, {"key": "hill.fuel", "kind": "text", "group": "hill"}, {"key": "hill.temp", "kind": "number", "group": "hill", "min": -30, "max": 45, "step": 1}, {"key": "hill.ground", "kind": "choice", "group": "hill", "options": ["dry", "wet", "snow"]}, {"key": "pain", "kind": "choice", "group": "pain", "options": ["no", "yes"], "important": 2}, {"key": "pain_where", "kind": "region", "group": "pain"}, {"key": "pain_side", "kind": "choice", "group": "pain", "options": ["left", "right", "both"]}, {"key": "pain_kind", "kind": "choice", "group": "pain", "options": ["dull", "sharp"]}, {"key": "pain_changed_run", "kind": "choice", "group": "pain", "options": ["no", "yes"]}, {"key": "tomorrow_start", "kind": "clock", "group": "tomorrow"}, {"key": "rebuild", "kind": "choice", "group": "rebuild", "options": ["yes", "not-yet"]}, {"key": "note", "kind": "text", "group": "note"}]}, "form_i18n": {"title": "Log this session", "intro": "Tap what fits. Anything you skip is sent as “?” — that is fine.", "done_proposed": "Done as proposed", "g_did": "How did it go?", "g_morning": "This morning", "g_session": "Session", "g_hill": "Benchmark hill", "g_weekly": "Weekly check-in", "g_pain": "Anything hurt?", "g_tomorrow": "Tomorrow", "g_rebuild": "The plan", "g_note": "Anything else?", "did_different": "Something different", "did_skipped": "Skipped", "did_rest": "Rest, as planned", "skip_reason": "Why?", "skip_no-time": "No time", "skip_tired": "Too tired", "skip_ill": "Ill", "skip_pain": "Pain", "skip_other": "Other", "legs": "Legs on waking", "legs_ends": "1 wrecked · 10 fresh", "sleep_h": "Hours slept", "sleep_q": "Sleep quality", "sleep_q_ends": "1 awful · 5 slept well", "motivation": "How much you wanted to train", "motivation_ends": "1 not at all · 5 keen", "stress": "Life outside training", "stress_ends": "1 very stressed · 5 relaxed", "life_h": "Hours on your feet outside training (optional)", "weight": "Weight, kg — morning, after the toilet", "appetite": "Appetite this week", "app_low": "Low", "app_normal": "Normal", "app_high": "High", "type": "What", "type_run": "Run", "type_long": "Long", "type_quality": "Quality", "type_barefoot": "Barefoot", "type_hike": "Hike", "type_climb": "Climb", "type_bike": "Bike", "type_ski": "Ski", "type_swim": "Swim", "type_race": "Race", "type_gym": "Strength", "type_life": "Walk / daily life", "dur": "Duration", "hours": "h", "minutes": "min", "start": "Started at", "km": "Distance, km", "up": "Climb, m", "down": "Descent, m", "same_as_up": "Descent = climb", "rpe": "Effort, by the talk test", "rpe_hint": "3 chatting · 4 full sentences · 6 short phrases · 8 a word or two", "fuel": "Eaten and drunk on the way", "bars": "Bars", "gels": "Gels", "scoops": "Drink scoops", "carb_g": "Anything else, grams of carbohydrate", "legs_after": "Legs at the end", "reps_left": "Reps left on the hardest set", "reps_left_hint": "how many more good reps you could have done", "exercises": "Exercises", "st_as-written": "As written", "st_easier": "Easier", "st_harder": "Harder", "st_skipped": "Skipped", "load": "Load used, if different", "add_session": "+ Add a session", "remove": "Remove", "hill_time": "Time on the hill (m:ss)", "hill_rpe": "Effort on the hill", "hill_pre_min": "Before the hill: minutes", "hill_pre_up": "Before the hill: climb, m", "hill_pre_down": "Before the hill: descent, m", "hill_breakfast": "Breakfast", "hill_fuel": "Eaten before the top", "hill_temp": "Temperature, °C", "hill_ground": "Ground", "gr_dry": "Dry", "gr_wet": "Wet", "gr_snow": "Snow", "yes": "Yes", "no": "No", "pain_where": "Where", "pain_side": "Side", "side_left": "Left", "side_right": "Right", "side_both": "Both", "pain_kind": "How", "kind_dull": "Dull", "kind_sharp": "Sharp", "pain_changed": "Did it change how you ran?", "region_foot": "Foot", "region_achilles": "Achilles", "region_calf": "Calf", "region_shin": "Shin", "region_knee": "Knee", "region_quad": "Thigh, front", "region_hamstring": "Thigh, back", "region_hip": "Hip", "region_groin": "Groin", "region_glute": "Glute", "region_low-back": "Low back", "region_upper-body": "Upper body", "region_systemic": "Whole body / ill", "tomorrow_start": "Tomorrow I start at (optional)", "rebuild_q": "The plan needs rebuilding (the box at the top says why). Rebuild now?", "rebuild_yes": "Yes, rebuild", "rebuild_not-yet": "Not yet", "progress": "{n} of {m} answered", "copy": "Copy", "copied": "Copied — paste it into Claude and press Enter.", "copy_fallback": "Selected — press Ctrl+C (⌘C on a Mac), then paste it into Claude.", "share": "Share", "clear": "Start again", "clear_confirm": "Tap again to clear"}}</script>
+
+<script>
+(function () {
+  "use strict";
+
+  /* The card published with the page, carried in a JSON island above rather than as a
+     `window.__CARD__ = {...}` statement inside this block. That is deliberate: the embed
+     step rewrites it on every /today, and while it lived here a rewrite that mis-found its
+     end deleted this entire program — the page rendered blank, and the HTML lint still
+     passed because the markup was fine. Data cannot swallow code across an element
+     boundary. There is no other copy: the page is a static file, rebuilt by
+     bin/card-embed.py whenever the card changes. */
+  var EMBEDDED = JSON.parse(document.getElementById("card-data").textContent);
+  /* The athlete's language block — every string the page says. card-render.js reads it as
+     `T`; a key it cannot find throws, and test/render-card.js runs this program. */
+  var T = EMBEDDED.i18n;
+  T.lang = EMBEDDED.lang;
+  document.documentElement.lang = EMBEDDED.lang || "en";
+
+  /* ============================================================================
+   SHARED between templates/daily-card.shell.html and every plan shell (through
+   templates/lib/plan-program.js, which includes it).
+
+   Spliced in at build time by bin/card-embed.py and bin/plan-embed.py, both of
+   which replace the one-line marker `//@@include card-render.js` with this file.
+   (Written inline here rather than on its own line: plan-embed.py resolves includes
+   recursively, and a bare marker in this comment would include this file in itself.)
+   It is never loaded over the network: these
+   pages are opened at 06:40 on a phone, sometimes on bad signal, and a blocked
+   script would leave raw markdown on the screen.
+
+   WHY IT IS SHARED. The plan page grew a day-by-day diary that renders the same
+   card markdown the daily card renders. Two copies of a markdown renderer is two
+   implementations of one rule, which is the drift docs/lessons.md records five
+   times over. The plan page also carried its own `pretty()` that formatted the
+   same ISO date differently ("7 Sep" against the card's "Fri 11 Sep") — both
+   spellings survive here, named apart, so neither page has to redefine one.
+
+   ES5 only, no dependencies, no globals beyond the names below. Both shells
+   splice it INSIDE their existing IIFE, so nothing here leaks to `window`.
+   ============================================================================ */
+
+  /* Local date, never toISOString() — that is UTC, so anywhere east of it the date flips
+     early and the page shows the wrong day late in the evening, which is exactly when
+     someone checks tomorrow's session before bed. */
+  function today() {
+    var d = new Date(), p = function (n) { return ("0" + n).slice(-2); };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  }
+  function daysBetween(a, b) {
+    return Math.round((Date.parse(b + "T00:00:00") - Date.parse(a + "T00:00:00")) / 864e5);
+  }
+  /* Every word this renderer and both pages say comes from `T`, the athlete's language
+     block out of templates/lib/i18n.json, carried in the JSON island as `i18n`. Each
+     shell defines `T` ABOVE this include. A missing key THROWS rather than painting
+     "undefined": the render tests execute the program, so an absent string fails the
+     build instead of shipping. */
+  function t(key, vars) {
+    var s = T[key];
+    if (s == null) throw new Error("i18n: no string for " + key + " in " + (T.lang || "?"));
+    return vars ? String(s).replace(/\{(\w+)\}/g, function (_, k) {
+      return vars[k] != null ? vars[k] : "{" + k + "}";
+    }) : s;
+  }
+  function plural(n, one, many) { return n === 1 ? t(one) : t(many); }
+  function pretty(iso) {
+    var d = new Date(iso + "T00:00:00");
+    return T.dow[d.getDay()] + " " + d.getDate() + " " + T.mon[d.getMonth()];
+  }
+  /* The daily card's spelling, in its title and in its status strip — one function, so the
+     two cannot show the date two ways (owner, 2026-10-02: "Friday 02 October 2026"). The
+     order and the words are the language's `date_long`, `dow_long` and `mon_long`. */
+  function prettyLong(iso) {
+    var p = iso.split("-"), d = new Date(iso + "T00:00:00");
+    var s = t("date_long", {dow: T.dow_long[d.getDay()], dd: p[2], mon: T.mon_long[+p[1] - 1], yyyy: p[0]});
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  /* The calendar's own spelling — no weekday, because the row already carries one. */
+  function prettyShort(iso) {
+    var p = iso.split("-");
+    return (+p[2]) + " " + T.mon[+p[1] - 1];
+  }
+  /* A day row's weekday, from the date, in the athlete's language. It used to be a
+     three-letter English string emitted by plan-embed.py — a second owner of the same
+     fact the date already carries. */
+  function dow(iso) { return T.dow[new Date(iso + "T00:00:00").getDay()]; }
+
+  /* ---- markdown, limited to what /today actually emits -------------------------
+     Written rather than pulled from a CDN: this page is opened at 06:40 on a phone,
+     sometimes on bad signal, and a blocked script would leave raw markdown on screen. */
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function inline(s) {
+    return esc(s)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2">$2</a>')
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  }
+  function cells(row) {
+    return row.replace(/^\||\|$/g, "").split("|").map(function (c) { return c.trim(); });
+  }
+
+  /* ---- the five-minute strength test box ------------------------------------------
+     bin/strength-test.py decides whether the test is due (never done, a retest two weeks
+     after stage 1 or 2, a new block, a layoff) and puts it in the payload as
+     `strength_test`; the card gets it only on a strength day. ONE painter for both pages,
+     here, because both include this file — two painters would be two readings of one rule.
+     Every word is from `T` (i18n.json, `st_*`); every video from exercise-library.md. */
+  function paintStrengthTest(S, el) {
+    if (!el) return;
+    if (!S || !S.show) { el.className = ""; el.innerHTML = ""; return; }
+    var V = S.videos || {};
+    function vids(ids) {
+      var n = 0, out = [];
+      ids.forEach(function (id) {
+        (V[id] || []).forEach(function (u) {
+          n++; out.push('<a href="' + esc(u).replace(/"/g, "&quot;") + '" target="_blank" rel="noopener">▶ ' + n + "</a>");
+        });
+      });
+      return out.join(" · ") || "—";
+    }
+    function table(head, rows) {
+      return '<div class="scroll"><table><thead><tr>' + head.map(function (h) {
+        return "<th>" + esc(h) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        rows.map(function (r) { return "<tr>" + r.map(function (c, i) {
+          return "<td>" + (c && typeof c === "object" ? c.html : esc(String(c))) + "</td>"; }).join("") + "</tr>";
+        }).join("") + "</tbody></table></div>";
+    }
+    function v(ids) { return { html: vids(ids) }; }
+    var L = S.last, st = [];
+    if (S.reason === "never") st.push(t("st_status_never"));
+    else if (S.reason === "retest") st.push(t("st_status_retest", { stage: L.strength_stage, date: pretty(L.date) }));
+    else if (S.reason === "block") st.push(t("st_status_block", { date: pretty(L.date) }));
+    else if (S.reason === "layoff") st.push(t("st_status_layoff", { date: pretty(S.since) }));
+    else if (L) st.push(t("st_status_last", { stage: L.strength_stage, date: pretty(L.date) }));
+    if (S.physio && L) st.push(t("st_status_physio", { stage: L.strength_stage }));
+
+    var legs = table(["#", t("st_th_test"), t("st_th_how"), t("st_th_fail"), t("st_th_result"), t("st_th_video")], [
+      ["1", t("st_squat_name"), t("st_squat_how"), t("st_squat_fail"), t("st_fail_to", { stage: 1 }), v(["air-squat-test"])],
+      ["2", t("st_box_name"), t("st_box_how"), t("st_box_fail"), t("st_fail_to", { stage: 2 }), v(["box-step-test", "step-up"])],
+      ["3", t("st_sit_name"), t("st_sit_how"), t("st_sit_fail"), t("st_fail_to", { stage: 3 }), v(["one-leg-sit-to-stand"])],
+      ["—", t("st_all_clean"), "", "", t("st_clean"), { html: "" }]]);
+    var core = table([t("st_th_test"), t("st_th_how"), t("st_th_result"), t("st_th_video")], [
+      [t("st_plank_name"), t("st_plank_how"), t("st_plank_result"), v(["plank-to-form"])],
+      [t("st_wiper_name"), t("st_wiper_how"), t("st_wiper_result"), v(["windshield-wiper"])]]);
+    var changes = table([t("st_th_result"), t("st_th_changes"), t("st_th_video")], [
+      [t("st_res_clean_name"), t("st_res_clean_do"), { html: "—" }],
+      [t("st_res_1_name"), t("st_res_1_do"), v(["banded-squat", "single-leg-lateral-band"])],
+      [t("st_res_2_name"), t("st_res_2_do"), v(["step-up", "eccentric-step-down", "front-lunge"])],
+      [t("st_res_physio_name"), t("st_res_physio_do"), { html: "—" }]]);
+
+    el.className = "strength-test" + (S.physio ? " physio" : "");
+    el.innerHTML = "<h2>⚠ " + esc(t("st_title")) + "</h2>" +
+      st.map(function (s) { return '<p class="st-status"><b>' + esc(s) + "</b></p>"; }).join("") +
+      "<p>" + esc(t("st_why")) + "</p><p>" + esc(t("st_how")) + "</p>" +
+      "<h3>" + esc(t("st_legs_head")) + "</h3>" + legs +
+      "<h3>" + esc(t("st_core_head")) + "</h3>" + core + "<p>" + esc(t("st_core_rule")) + "</p>" +
+      "<h3>" + esc(t("st_changes_head")) + "</h3>" + changes +
+      "<p>" + esc(t("st_report")).replace("{cmd}", "<code>/log</code>") + "</p>" +
+      "<pre><code>" + esc(t("st_report_example")) + "</code></pre>" +
+      "<p>" + esc(t("st_when")) + "</p>";
+  }
+  function render(md) {
+    var lines = md.replace(/\r/g, "").split("\n"), out = [], i = 0;
+    function flushList(tag, items) {
+      out.push("<" + tag + ">" + items.map(function (x) {
+        return "<li>" + inline(x) + "</li>"; }).join("") + "</" + tag + ">");
+    }
+    while (i < lines.length) {
+      var L = lines[i];
+      if (!L.trim()) { i++; continue; }
+
+      var h = /^(#{1,4})\s+(.*)$/.exec(L);
+      if (h) {                                   // the card's H1 is the page title already
+        if (h[1].length > 1) {
+          out.push("<h" + h[1].length + ">" + inline(h[2]) + "</h" + h[1].length + ">");
+        }
+        i++; continue;
+      }
+      if (/^\s{4,}\S/.test(L)) {                 // indented block — a code example
+        var pre = [];
+        while (i < lines.length && (/^\s{4,}/.test(lines[i]) || !lines[i].trim())) {
+          if (lines[i].trim()) pre.push(lines[i].replace(/^\s{4}/, ""));
+          else if (pre.length && /^\s{4,}/.test(lines[i + 1] || "")) pre.push("");
+          else break;
+          i++;
+        }
+        out.push("<pre><code>" + esc(pre.join("\n")) + "</code></pre>");
+        continue;
+      }
+      if (/^\|/.test(L) && /^\|[\s:|-]+\|$/.test(lines[i + 1] || "")) {
+        var head = cells(L); i += 2; var body = [];
+        while (i < lines.length && /^\|/.test(lines[i])) { body.push(cells(lines[i])); i++; }
+        out.push('<div class="scroll"><table><thead><tr>' +
+          head.map(function (c) { return "<th>" + inline(c) + "</th>"; }).join("") +
+          "</tr></thead><tbody>" + body.map(function (r) {
+            return "<tr>" + r.map(function (c) { return "<td>" + inline(c) + "</td>"; }).join("") + "</tr>";
+          }).join("") + "</tbody></table></div>");
+        continue;
+      }
+      if (/^\|/.test(L)) {                        // rows with no header and no |---| line —
+        var rows = [];                           // "| Totals | ~280 g | ~126 g |" (mobile §29)
+        while (i < lines.length && /^\|/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
+        out.push('<div class="scroll"><table><tbody>' + rows.map(function (r) {
+          return "<tr>" + r.map(function (c) { return "<td>" + inline(c) + "</td>"; }).join("") + "</tr>";
+        }).join("") + "</tbody></table></div>");
+        continue;
+      }
+      if (/^>\s?/.test(L)) {
+        var q = [];
+        while (i < lines.length && /^>\s?/.test(lines[i])) { q.push(lines[i].replace(/^>\s?/, "")); i++; }
+        var text = q.join("\n"), warn = /⚠/.test(text) ? " warn" : "";
+        out.push('<blockquote class="q' + warn + '">' + render(text) + "</blockquote>");
+        continue;
+      }
+      if (/^\s*[-*·]\s+/.test(L)) {
+        var ul = [];
+        while (i < lines.length && /^\s*[-*·]\s+/.test(lines[i])) {
+          var item = lines[i].replace(/^\s*[-*·]\s+/, ""); i++;
+          while (i < lines.length && /^\s{2,}\S/.test(lines[i]) && !/^\s*[-*·]\s+/.test(lines[i]) &&
+                 !/^\s{4,}\S/.test(lines[i])) { item += " " + lines[i].trim(); i++; }
+          ul.push(item);
+        }
+        flushList("ul", ul); continue;
+      }
+      if (/^\s*\d+\.\s+/.test(L)) {
+        var ol = [];
+        while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+          var it = lines[i].replace(/^\s*\d+\.\s+/, ""); i++;
+          while (i < lines.length && /^\s{2,}\S/.test(lines[i]) && !/^\s*\d+\.\s+/.test(lines[i])) {
+            it += " " + lines[i].trim(); i++;
+          }
+          ol.push(it);
+        }
+        flushList("ol", ol); continue;
+      }
+      var para = [];
+      while (i < lines.length && lines[i].trim() && !/^[#>|]/.test(lines[i]) &&
+             !/^\s*([-*·]|\d+\.)\s+/.test(lines[i]) && !/^\s{4,}\S/.test(lines[i])) {
+        para.push(lines[i].trim()); i++;
+      }
+      // A line no branch above took ("##### x", "#tag") must still be consumed: without this
+      // `i` never moved and the page spun forever — two model cards did that (mobile §29).
+      if (!para.length) { para.push(lines[i].trim()); i++; }
+      out.push("<p>" + inline(para.join(" ")) + "</p>");
+    }
+    return out.join("\n");
+  }
+
+  /* ---- the card cut for display (owner, 2026-10-02) ------------------------------------
+     ONE cut, for the daily card and the plan page's diary, so the two show a card the same
+     way: the session part — everything before the fuel section — open; then the fuel section
+     (from the language's `fuel_heading`, verbatim, optionally followed by a subtitle, to the
+     next H2) and every section after it, each folded, the recap — `recap_heading` — LAST
+     wherever it was written: cards archived before 2026-10-02 carry it first, and an old
+     card's "Afterwards" becomes a fold of its own. Nothing is dropped. No fuel section: the
+     whole card is the session part and nothing folds. */
+  function cutCard(md) {
+    var lines = md.split("\n"), secs = [{title: "", lines: []}], k, h;
+    for (k = 0; k < lines.length; k++) {
+      h = /^##\s+(.+)$/.exec(lines[k]);
+      if (h) secs.push({title: h[1], lines: []});
+      else secs[secs.length - 1].lines.push(lines[k]);
+    }
+    var fuel = -1, recap = -1;
+    for (k = 1; k < secs.length; k++) {
+      if (fuel < 0 && secs[k].title.indexOf(t("fuel_heading")) === 0) fuel = k;
+      if (recap < 0 && secs[k].title.indexOf(t("recap_heading")) === 0) recap = k;
+    }
+    if (fuel < 0) return {session: md, fuelTitle: "", fuel: "", folds: []};
+    var session = [], folds = [];
+    for (k = 0; k < fuel; k++) {
+      if (k !== recap) session.push((secs[k].title ? "## " + secs[k].title + "\n" : "") + secs[k].lines.join("\n"));
+    }
+    for (k = fuel + 1; k < secs.length; k++) {
+      if (k !== recap) folds.push({title: secs[k].title, md: secs[k].lines.join("\n")});
+    }
+    if (recap >= 0) folds.push({title: secs[recap].title, md: secs[recap].lines.join("\n")});
+    return {session: session.join("\n"), fuelTitle: secs[fuel].title,
+            fuel: secs[fuel].lines.join("\n"), folds: folds};
+  }
+
+  /* A folded section, as a string — the diary's. The daily card's #fuel and #recap are this
+     markup written into its shell and painted by its fold(); templates/lib/card.css styles both.
+     `key` names the fold for the page's delegated click; it is CLOSED unless `open`. */
+  function foldHTML(key, title, bodyHtml, open) {
+    return '<section class="card fold-sec"><h2 class="fold-h"><button type="button" class="fold"' +
+      ' data-fold="' + esc(key) + '" aria-expanded="' + (open ? "true" : "false") + '"><span>' +
+      inline(title) + '</span></button></h2><div class="fold-body"' + (open ? "" : " hidden") + ">" +
+      bodyHtml + "</div></section>";
+  }
+
+    /* ===========================================================================
+     templates/lib/log-form.js — the "log this session" form on the DAILY CARD, under the session
+     and before the folded fuel and recap.
+     Spliced into the card page's program only (bin/card-embed.py, `//@@include log-form.js`);
+     never into the plan page, whose diary must stay a record. ES5, like card-render.js, and
+     it uses that file's esc().
+
+     Owner, 2026-10-01: the runner should think about training, not about the system. So: tap
+     what fits, skip what you like (a skip is sent as `?`, explicitly), press Copy, paste into
+     Claude. The fields, their ranges and their order are NOT defined here: they come from the
+     payload's `log_form.fields`, which is bin/logform.py's FIELDS — the one contract the parser
+     behind /log reads back (lesson 5: two implementations, one contract, and test/attack.py
+     feeds this composer's output to that parser). The labels are the payload's `form_i18n`, in
+     the athlete's language. The answers live in `V`; a tap repaints the form, typing only
+     repaints the preview, so a field never loses the cursor.
+
+     Nothing here may contain the text that opens a script element: bin/card-embed.py counts
+     them, and a page with a third would be refused.
+     =========================================================================== */
+
+  function composeLog(spec, v) {
+    v = v || {};
+    var L = ["/log", "logform v" + spec.version + " " + spec.for_date, "input_mode: form",
+             "card: " + spec.card.modality + " · " + spec.card.intensity];
+    var fields = spec.fields || [];
+    function of(g) { return fields.filter(function (f) { return f.group === g; }); }
+    function val(x) {
+      if (x === undefined || x === null || x === "") return "?";
+      return String(x).replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim() || "?";
+    }
+    function put(k, x) { L.push(k + ": " + val(x)); }
+    var did = v.did || "?";
+    put("did", did);
+    if (did === "skipped") put("skip_reason", v.skip_reason);
+    of("morning").forEach(function (f) { put(f.key, v[f.key]); });
+    if (spec.weekly) of("weekly").forEach(function (f) { put(f.key, v[f.key]); });
+    /* A session is sent only when the runner said it happened (did = proposed / different) or
+       answered something about it — a type pre-selected from the card is not a report, and a
+       blank form must never invent a session the parser would log. */
+    function touched(s) {
+      for (var k in s) if (k !== "type" && k !== "ex" && s[k] !== "" && s[k] != null && s[k] !== false) return true;
+      for (var n in (s.ex || {})) if (s.ex[n] && (s.ex[n].status || s.ex[n].load)) return true;
+      return false;
+    }
+    if (did === "proposed" || did === "different" || (did === "?" && (v.sessions || []).some(touched))) {
+      (v.sessions || []).filter(function (s) { return did !== "?" || touched(s); }).forEach(function (s, i) {
+        var p = "s" + (i + 1) + ".";
+        put(p + "type", s.type);
+        put(p + "dur", duration(s));
+        put(p + "start", s.start);
+        if (s.type === "gym") {
+          put(p + "reps_left", s.reps_left);
+          (spec.exercises || []).forEach(function (e) {
+            var x = (s.ex || {})[e.n] || {};
+            var name = String(e.name).replace(/·/g, "-");
+            L.push(p + "ex" + e.n + ": " + (x.status
+              ? name + " · " + x.status + (x.load ? " · " + val(x.load).replace(/·/g, "-") : "")
+              : "?"));
+          });
+        } else {
+          of("endurance").forEach(function (f) {
+            /* a counter the runner left at the 0 it shows is a 0, not a blank: what is sent
+               must be what the screen said */
+            var x = f.key === "down" && s.same ? s.up : s[f.key];
+            put(p + f.key, f.kind === "count" && (x === undefined || x === null || x === "") ? 0 : x);
+          });
+        }
+      });
+    }
+    if (spec.hill) of("hill").forEach(function (f) { put(f.key, (v.hill || {})[f.key.slice(5)]); });
+    put("pain", v.pain);
+    if (v.pain === "yes")
+      ["pain_where", "pain_side", "pain_kind", "pain_changed_run"].forEach(function (k) { put(k, v[k]); });
+    put("tomorrow_start", v.tomorrow_start);
+    if (spec.rebuild) put("rebuild", v.rebuild);
+    put("note", v.note);
+    return L.join("\n");
+  }
+
+  function duration(s) {
+    var h = parseInt(s.dur_h, 10), m = parseInt(s.dur_m, 10);
+    if (isNaN(h) && isNaN(m)) return "";
+    var t = (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+    var hh = Math.floor(t / 60), mm = t % 60;
+    return hh ? hh + " h" + (mm ? " " + mm + "′" : "") : mm + "′";
+  }
+
+  function paintLogForm(card, el, F) {
+    var spec = card && card.log_form, root = el && el.section;
+    if (!root) return;
+    if (!spec || !F) { root.hidden = true; return; }
+    root.hidden = false;
+    spec.rebuild = !!(card.health && card.health.fired && card.health.fired.length);
+    var KEY = "logform:" + spec.user + ":" + spec.for_date, V = load(), open = false, armed = false;
+
+    function fx(k, vars) {
+      var s = F[k];
+      if (s == null) throw new Error("i18n: no form string for " + k + " in " + (T.lang || "?"));
+      return String(s).replace(/\{(\w+)\}/g, function (_, n) { return vars && vars[n] != null ? vars[n] : ""; });
+    }
+    function load() {
+      try { var x = JSON.parse(window.localStorage.getItem(KEY) || "null"); if (x) return x; } catch (e) {}
+      return {sessions: (spec.sessions || []).map(function (s) { return {type: s.type, ex: {}}; })};
+    }
+    function save() { try { window.localStorage.setItem(KEY, JSON.stringify(V)); } catch (e) {} }
+    function field(k) { for (var i = 0; i < spec.fields.length; i++) if (spec.fields[i].key === k) return spec.fields[i]; return {}; }
+
+    /* ---- small builders: every control carries data-* and is read through one listener ---- */
+    function btn(act, attrs, label, on) {
+      var a = ' data-act="' + act + '"';
+      for (var k in attrs) a += " data-" + k + '="' + esc(String(attrs[k])) + '"';
+      return '<button type="button" class="lf-b' + (on ? " on" : "") + '"' + a + ">" + esc(label) + "</button>";
+    }
+    function chips(k, opts, cur, labelOf, sess) {
+      return '<div class="lf-row">' + opts.map(function (o) {
+        var at = {k: k, v: o}; if (sess != null) at.s = sess;
+        return btn("set", at, labelOf(o), String(cur) === String(o));
+      }).join("") + "</div>";
+    }
+    function scale(k, cur, sess) {
+      var f = field(k), out = [], half = f.step === 0.5;
+      for (var i = f.min; i <= f.max; i++) out.push(i);
+      var base = cur == null || cur === "" ? null : Math.floor(Number(cur));
+      var html = chips(k, out, base, String, sess);
+      if (half) {
+        var at = {k: k}; if (sess != null) at.s = sess;
+        html = html.replace(/<\/div>$/, btn("half", at, "+½", cur != null && Number(cur) % 1 !== 0) + "</div>");
+      }
+      return html;
+    }
+    function input(k, cur, type, sess, ph, mode) {
+      return '<input class="lf-in" type="' + type + '"' + (mode ? ' inputmode="' + mode + '"' : "") +
+             ' data-k="' + k + '"' + (sess != null ? ' data-s="' + sess + '"' : "") +
+             (ph ? ' placeholder="' + esc(ph) + '"' : "") + ' value="' + esc(cur == null ? "" : String(cur)) + '">';
+    }
+    function stepper(k, cur, sess) {
+      var at = {k: k}; if (sess != null) at.s = sess;
+      var n = cur == null || cur === "" ? 0 : Number(cur);
+      return '<div class="lf-row lf-step">' + btn("dec", at, "−") + '<span class="lf-n">' + n + "</span>" +
+             btn("inc", at, "+") + "</div>";
+    }
+    function q(label, body, hint) {
+      return '<div class="lf-q"><div class="lf-l">' + esc(label) + (hint ? ' <span class="lf-h">' + esc(hint) + "</span>" : "") +
+             "</div>" + body + "</div>";
+    }
+    function group(title, body) { return '<fieldset class="lf-g"><legend>' + esc(title) + "</legend>" + body + "</fieldset>"; }
+
+    function session(s, i) {
+      var out = q(fx("type"), chips("type", spec.types, s.type, function (o) { return fx("type_" + o); }, i)) +
+        q(fx("dur"), '<div class="lf-row">' + input("dur_h", s.dur_h, "number", i, fx("hours"), "numeric") +
+          '<span class="lf-u">' + esc(fx("hours")) + "</span>" + input("dur_m", s.dur_m, "number", i, fx("minutes"), "numeric") +
+          '<span class="lf-u">' + esc(fx("minutes")) + "</span></div>") +
+        q(fx("start"), input("start", s.start, "time", i));
+      if (s.type === "gym") {
+        out += q(fx("reps_left"), scale("reps_left", s.reps_left, i), fx("reps_left_hint"));
+        if ((spec.exercises || []).length) {
+          out += '<div class="lf-l">' + esc(fx("exercises")) + "</div>" + spec.exercises.map(function (e) {
+            var x = (s.ex || {})[e.n] || {};
+            return '<div class="lf-ex"><div class="lf-exn">' + e.n + ". " + esc(e.name) + "</div>" +
+              '<div class="lf-row">' + spec.status.map(function (st) {
+                return btn("ex", {s: i, n: e.n, v: st}, fx("st_" + st), x.status === st);
+              }).join("") + "</div>" +
+              '<input class="lf-in" type="text" data-k="exload" data-s="' + i + '" data-n="' + e.n +
+              '" placeholder="' + esc(fx("load")) + '" value="' + esc(x.load || "") + '"></div>';
+          }).join("");
+        }
+      } else {
+        out += q(fx("km"), input("km", s.km, "number", i, "", "decimal")) +
+          q(fx("up"), input("up", s.up, "number", i, "", "numeric")) +
+          q(fx("down"), s.same ? "" : input("down", s.down, "number", i, "", "numeric"),
+            "") + '<div class="lf-row">' + btn("same", {s: i}, fx("same_as_up"), !!s.same) + "</div>" +
+          q(fx("rpe"), chips("rpe", ["2", "3", "3-4", "4", "4-5", "5", "6", "7", "8", "9"], s.rpe, String, i), fx("rpe_hint")) +
+          '<div class="lf-l">' + esc(fx("fuel")) + "</div>" +
+          ["bars", "gels", "scoops"].map(function (k) { return q(fx(k), stepper(k, s[k], i)); }).join("") +
+          q(fx("carb_g"), input("carb_g", s.carb_g, "number", i, "", "numeric")) +
+          q(fx("legs_after"), scale("legs_after", s.legs_after, i), fx("legs_ends"));
+      }
+      if (i >= (spec.sessions || []).length) out += '<div class="lf-row">' + btn("drop", {s: i}, fx("remove")) + "</div>";
+      return group(fx("g_session") + (V.sessions.length > 1 ? " " + (i + 1) : ""), out);
+    }
+
+    function body() {
+      var did = V.did, h = "";
+      h += '<p class="lf-intro">' + esc(fx("intro")) + "</p>";
+      h += group(fx("g_did"), chips("did", ["proposed", "different", "skipped", "rest"], did,
+        function (o) { return o === "proposed" ? fx("done_proposed") : fx("did_" + o); }) +
+        (did === "skipped" ? q(fx("skip_reason"), chips("skip_reason", field("skip_reason").options, V.skip_reason,
+          function (o) { return fx("skip_" + o); })) : ""));
+      h += group(fx("g_morning"),
+        q(fx("legs"), scale("legs", V.legs), fx("legs_ends")) +
+        q(fx("sleep_h"), input("sleep_h", V.sleep_h, "number", null, "", "decimal")) +
+        q(fx("sleep_q"), scale("sleep_q", V.sleep_q), fx("sleep_q_ends")) +
+        q(fx("motivation"), scale("motivation", V.motivation), fx("motivation_ends")) +
+        q(fx("stress"), scale("stress", V.stress), fx("stress_ends")) +
+        q(fx("life_h"), input("life_h", V.life_h, "number", null, "", "decimal")));
+      if (spec.weekly) h += group(fx("g_weekly"),
+        q(fx("weight"), input("weight", V.weight, "number", null, "", "decimal")) +
+        q(fx("appetite"), chips("appetite", field("appetite").options, V.appetite, function (o) { return fx("app_" + o); })));
+      if (did !== "skipped" && did !== "rest") {
+        h += V.sessions.map(session).join("");
+        if (V.sessions.length < spec.max_sessions) h += '<div class="lf-row">' + btn("add", {}, fx("add_session")) + "</div>";
+      }
+      if (spec.hill) {
+        var H = V.hill || {};
+        h += group(fx("g_hill"),
+          q(fx("hill_time"), '<input class="lf-in" type="text" inputmode="numeric" data-k="hill.time" placeholder="34:10" value="' + esc(H.time || "") + '">') +
+          q(fx("hill_rpe"), chips("hill.rpe", ["3", "3-4", "4", "5", "6", "7", "8"], H.rpe, String)) +
+          q(fx("hill_pre_min"), input("hill.pre_min", H.pre_min, "number", null, "", "numeric")) +
+          q(fx("hill_pre_up"), input("hill.pre_up", H.pre_up, "number", null, "", "numeric")) +
+          q(fx("hill_pre_down"), input("hill.pre_down", H.pre_down, "number", null, "", "numeric")) +
+          q(fx("hill_breakfast"), input("hill.breakfast", H.breakfast, "text")) +
+          q(fx("hill_fuel"), input("hill.fuel", H.fuel, "text")) +
+          q(fx("hill_temp"), input("hill.temp", H.temp, "number", null, "", "numeric")) +
+          q(fx("hill_ground"), chips("hill.ground", ["dry", "wet", "snow"], H.ground, function (o) { return fx("gr_" + o); })));
+      }
+      h += group(fx("g_pain"), chips("pain", ["no", "yes"], V.pain, function (o) { return fx(o); }) +
+        (V.pain === "yes" ?
+          q(fx("pain_where"), chips("pain_where", spec.regions, V.pain_where, function (o) { return fx("region_" + o); })) +
+          q(fx("pain_side"), chips("pain_side", ["left", "right", "both"], V.pain_side, function (o) { return fx("side_" + o); })) +
+          q(fx("pain_kind"), chips("pain_kind", ["dull", "sharp"], V.pain_kind, function (o) { return fx("kind_" + o); })) +
+          q(fx("pain_changed"), chips("pain_changed_run", ["no", "yes"], V.pain_changed_run, function (o) { return fx(o); }))
+          : ""));
+      h += group(fx("g_tomorrow"), q(fx("tomorrow_start"), input("tomorrow_start", V.tomorrow_start, "time")));
+      if (spec.rebuild) h += group(fx("g_rebuild"), q(fx("rebuild_q"),
+        chips("rebuild", ["yes", "not-yet"], V.rebuild, function (o) { return fx("rebuild_" + o); })));
+      h += group(fx("g_note"), '<textarea class="lf-in lf-note" data-k="note" rows="2">' + esc(V.note || "") + "</textarea>");
+      return h;
+    }
+
+    function answered() {
+      var core = ["did", "legs", "sleep_h", "sleep_q", "motivation", "stress", "pain"], n = 0, m = core.length;
+      core.forEach(function (k) { if (V[k] != null && V[k] !== "") n++; });
+      if (V.did !== "skipped" && V.did !== "rest") V.sessions.forEach(function (s) {
+        m += 2;
+        if (duration(s)) n++;
+        if (s.type === "gym" ? s.reps_left : s.rpe) n++;
+      });
+      if (spec.hill) { m++; if (V.hill && V.hill.time) n++; }
+      return [n, m];
+    }
+    function out() {
+      var a = answered();
+      el.progress.textContent = fx("progress", {n: a[0], m: a[1]});
+      el.preview.textContent = composeLog(spec, V);
+    }
+    function paintAll() {
+      // The caret is the page's CSS, from aria-expanded — the same rule as the card's folds
+      // (owner, 2026-10-02: one accordion look); the open header turns yellow by the same attribute.
+      el.toggle.textContent = fx("title");
+      el.toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      el.body.hidden = !open; el.out.hidden = !open;
+      if (!open) return;
+      el.body.innerHTML = body();
+      el.actions.innerHTML = btn("copy", {}, fx("copy")) +
+        (window.navigator && window.navigator.share ? btn("share", {}, fx("share")) : "") +
+        btn("clear", {}, armed ? fx("clear_confirm") : fx("clear")) + '<span class="lf-note-out" data-role="note"></span>';
+      out();
+    }
+    function sess(t) { var s = t.getAttribute("data-s"); return s == null || s === "" ? null : parseInt(s, 10); }
+    function setv(k, v, s) {
+      if (s != null) { V.sessions[s] = V.sessions[s] || {ex: {}}; V.sessions[s][k] = v; return; }
+      if (k.indexOf("hill.") === 0) { V.hill = V.hill || {}; V.hill[k.slice(5)] = v; return; }
+      V[k] = v;
+    }
+    function getv(k, s) {
+      if (s != null) return (V.sessions[s] || {})[k];
+      if (k.indexOf("hill.") === 0) return (V.hill || {})[k.slice(5)];
+      return V[k];
+    }
+    function said(msg) {
+      var a = el.actions.innerHTML;
+      el.actions.innerHTML = a.replace(/<span class="lf-note-out"[^>]*>[\s\S]*?<\/span>/,
+        '<span class="lf-note-out" data-role="note">' + esc(msg) + "</span>");
+    }
+    function copy() {
+      var text = composeLog(spec, V);
+      var nav = window.navigator;
+      if (nav && nav.clipboard && nav.clipboard.writeText) {
+        try { nav.clipboard.writeText(text).then(function () { said(fx("copied")); }, fallback); return; }
+        catch (e) {}
+      }
+      fallback();
+      function fallback() {
+        el.copy.value = text; el.copy.hidden = false;
+        try { el.copy.select(); if (document.execCommand && document.execCommand("copy")) { said(fx("copied")); return; } }
+        catch (e) {}
+        said(fx("copy_fallback"));
+      }
+    }
+    function proposed() {
+      V.did = (spec.sessions || []).length ? "proposed" : "rest";      // a rest card's "as proposed" is rest
+      V.sessions = (spec.sessions || []).map(function (p, i) {
+        var s = V.sessions[i] || {ex: {}};
+        s.type = p.type;
+        if (p.dur) { s.dur_h = Math.floor(p.dur / 60) || ""; s.dur_m = p.dur % 60; }
+        if (p.rpe && !s.rpe) s.rpe = p.rpe;
+        if (p.type === "gym") (spec.exercises || []).forEach(function (e) {
+          s.ex = s.ex || {}; s.ex[e.n] = s.ex[e.n] || {}; if (!s.ex[e.n].status) s.ex[e.n].status = "as-written";
+        });
+        return s;
+      });
+    }
+
+    function onClick(e) {
+      var t = e.target;
+      while (t && t !== root && !(t.getAttribute && t.getAttribute("data-act"))) t = t.parentNode;
+      if (!t || t === root || !t.getAttribute) return;
+      var act = t.getAttribute("data-act"), k = t.getAttribute("data-k"), v = t.getAttribute("data-v"), s = sess(t);
+      if (act !== "clear") armed = false;
+      if (act === "toggle") { open = !open; paintAll(); return; }
+      if (act === "copy") { copy(); return; }
+      if (act === "share") { try { window.navigator.share({text: composeLog(spec, V)}); } catch (x) {} return; }
+      if (act === "clear") {
+        if (!armed) { armed = true; paintAll(); return; }
+        armed = false; try { window.localStorage.removeItem(KEY); } catch (x) {}
+        V = load(); V.sessions = (spec.sessions || []).map(function (p) { return {type: p.type, ex: {}}; });
+      } else if (act === "set" && k === "did" && v === "proposed") {
+        /* "Done as proposed" fills the session from the card — and on a rest card it IS rest */
+        var want = (spec.sessions || []).length ? "proposed" : "rest";
+        if (V.did === want) V.did = ""; else proposed();
+      } else if (act === "set") {
+        var cur = getv(k, s);
+        setv(k, String(cur) === String(v) ? "" : (/^-?\d+(\.\d+)?$/.test(v) && !/-/.test(v.slice(1)) ? Number(v) : v), s);
+      } else if (act === "half") {
+        var c = Number(getv(k, s));
+        if (!isNaN(c) && getv(k, s) !== "" && getv(k, s) != null) {
+          var f = field(k);
+          setv(k, c % 1 ? c - 0.5 : Math.min(f.max, c + 0.5), s);
+        }
+      } else if (act === "inc" || act === "dec") {
+        var n = Number(getv(k, s) || 0) + (act === "inc" ? 1 : -1);
+        setv(k, Math.max(0, n), s);
+      } else if (act === "same") { V.sessions[s].same = !V.sessions[s].same; }
+      else if (act === "ex") {
+        var x = V.sessions[s]; x.ex = x.ex || {}; var nn = t.getAttribute("data-n");
+        x.ex[nn] = x.ex[nn] || {}; x.ex[nn].status = x.ex[nn].status === v ? "" : v;
+      }
+      else if (act === "add") { V.sessions.push({type: "run", ex: {}}); if (!V.did) V.did = "different"; }
+      else if (act === "drop") { V.sessions.splice(s, 1); }
+      save(); paintAll();
+    }
+    function onInput(e) {
+      var t = e.target;
+      if (!t || !t.getAttribute) return;
+      var k = t.getAttribute("data-k");
+      if (!k) return;
+      var s = sess(t);
+      if (k === "exload") {
+        var x = V.sessions[s]; x.ex = x.ex || {}; var nn = t.getAttribute("data-n");
+        x.ex[nn] = x.ex[nn] || {}; x.ex[nn].load = t.value;
+      } else setv(k, t.value, s);
+      save(); out();
+    }
+    root.addEventListener("click", onClick);
+    root.addEventListener("input", onInput);
+    paintAll();
+  }
+
+  /* ---- a folded section: its heading the button, its body CLOSED whenever the page opens
+     (owner, 2026-10-02: Fuel today, then the recap). One function for both, so they cannot
+     behave two ways. No title: the section stays hidden. --------------------------------- */
+  function fold(id, title, md) {
+    var sec = document.getElementById(id), body = document.getElementById(id + "-body"),
+        tog = document.getElementById(id + "-toggle");
+    sec.hidden = !title;
+    document.getElementById(id + "-title").innerHTML = title ? inline(title) : "";
+    body.innerHTML = title ? render(md) : "";
+    body.hidden = true;
+    tog.setAttribute("aria-expanded", "false");
+    tog.addEventListener("click", function () {
+      body.hidden = !body.hidden;
+      tog.setAttribute("aria-expanded", body.hidden ? "false" : "true");
+    });
+  }
+
+  /* ---- paint ------------------------------------------------------------------ */
+  function paint(card) {
+    var now = today(), age = daysBetween(card.for_date, now);
+    var bar = document.getElementById("status"), txt = document.getElementById("statusText");
+
+    if (age === 0) {
+      bar.className = "status";
+      txt.innerHTML = "<b>" + prettyLong(now) + "</b> &nbsp;·&nbsp; " + t("status_today");
+    } else if (age > 0) {
+      bar.className = "status stale";
+      txt.innerHTML = "<b>" + prettyLong(now) + "</b> &nbsp;·&nbsp; " +
+        t("status_past", {date: prettyLong(card.for_date), n: age, days: plural(age, "day", "days")});
+    } else {
+      bar.className = "status";
+      txt.innerHTML = "<b>" + prettyLong(now) + "</b> &nbsp;·&nbsp; " +
+        t("status_ahead", {date: prettyLong(card.for_date), n: -age, days: plural(-age, "day", "days")});
+    }
+
+    /* The title, on two lines (owner, 2026-10-02): the card's date, spelled as the status
+       strip spells it, then the headline — the H1 without its `<Today> · <dow d mon> — `
+       prefix, computed once by bin/athlete.py:card_headline, which the plan page's calendar
+       row reads too. */
+    document.getElementById("title-date").textContent = prettyLong(card.for_date);
+    document.getElementById("title-head").textContent = card.headline || t("today");
+    /* The race name, the plan length and the link to the plan all used to be baked into
+       this shell — one athlete's details in a template shared by every runner. A second
+       runner's card would have carried the first runner's race in its masthead and linked
+       to the first runner's plan. They come from the payload now. */
+    document.getElementById("eyebrow").textContent =
+      (card.race_name ? card.race_name + " · " : "") + t("week") + " " + card.week +
+      (card.total_weeks ? " " + t("of") + " " + card.total_weeks : "") +
+      " · " + card.weeks_to_race + " " + t("weeks_to_race");
+    /* Relative links, from the payload: the card sits beside its runner's plan
+       (index.html), one folder below the list of runners (../). The plan link is in the
+       status strip, on the right, under "All runners" (owner, 2026-10-02). Every word is the
+       payload's `i18n` block: the shell is shared by every runner and carries no English. */
+    var pl = document.getElementById("planlink");
+    pl.textContent = t("full_plan");
+    if (card.plan_url) { pl.href = card.plan_url; pl.hidden = false; }
+    else { pl.hidden = true; }
+    var hl = document.getElementById("homelink");
+    hl.textContent = t("home");
+    if (card.home_url) { hl.href = card.home_url; hl.hidden = false; }
+    else { hl.hidden = true; }
+    document.getElementById("card-note").innerHTML = t("card_note");
+
+    var tags = [];
+    if (card.modality) tags.push([t("modality"), card.modality]);
+    if (card.intensity) tags.push([t("effort"), card.intensity]);
+    document.getElementById("tags").innerHTML =
+      tags.map(function (x) {
+        return '<span class="tag">' + x[0] + " <b>" + x[1] + "</b></span>";
+      }).join("");
+
+    document.getElementById("stampL").innerHTML = "<b>PLAN v" +
+      esc(String(card.plan_version || "?")) + "</b> &nbsp; " + t("card_written") + " " +
+      esc(String(card.updated || card.generated_at || card.for_date));
+
+    /* plan/health.md, written by bin/triggers.py after every log: a rebuild trigger that
+       fired is said HERE, above the card, in the athlete's language — and nothing rebuilds
+       until the runner says yes. No box when nothing fired. */
+    var H = card.health, hb = document.getElementById("health");
+    if (H && H.fired && H.fired.length) {
+      var worst = H.fired.some(function (f) { return f.severity === "now"; }) ? "now"
+                : (H.fired.some(function (f) { return f.severity === "soon"; }) ? "soon" : "later");
+      hb.className = "health " + worst;
+      hb.innerHTML = "<h2>⚠ " + esc(t("health_title")) + "</h2><ul>" +
+        H.fired.map(function (f) {
+          return "<li><b>" + esc(t("health_sev_" + f.severity) || f.severity) + "</b> · " +
+                 esc(f.reason) + "<br>" + esc(t("health_do")) + "</li>";
+        }).join("") + "</ul>";
+    } else { hb.className = ""; hb.innerHTML = ""; }
+
+    /* The five-minute strength test — the same box as the plan page, on a strength day only
+       (bin/strength-test.py decides; card-embed.py passes `show` false on any other day). */
+    paintStrengthTest(card.strength_test, document.getElementById("strength-test"));
+
+    /* The card, cut around its fuel section: what comes before it open (the session), then —
+       after the log form, which sits between them in the markup — the fuel section folded and
+       closed, then the recap — `## <recap_heading>`, the only section allowed after fuel
+       (bin/check.py:rule_card_sections) — folded and closed too. */
+    var parts = cutCard(card.markdown);                  // card-render.js — the diary's cut too
+    document.getElementById("card").innerHTML = render(parts.session);
+    fold("fuel", parts.fuelTitle, parts.fuel);
+    /* The recap is the one section after the fuel (CARD-ORDER); anything else there is folded
+       in under it rather than dropped. */
+    var f = parts.folds, last = f.length ? f[f.length - 1] : null;
+    fold("recap", last ? last.title : "", f.slice(0, -1).reduce(function (acc, x) {
+      return acc + "\n## " + x.title + "\n" + x.md; }, last ? last.md : ""));
+
+    /* The log form, under the session: tap, Copy, paste into Claude. Its fields are bin/logform.py's
+       contract (the payload's `log_form`), its words the payload's `form_i18n`. */
+    paintLogForm(card, {section: document.getElementById("logform"), toggle: document.getElementById("lf-toggle"),
+      body: document.getElementById("lf-body"), out: document.getElementById("lf-out"),
+      progress: document.getElementById("lf-progress"), preview: document.getElementById("lf-preview"),
+      actions: document.getElementById("lf-actions"), copy: document.getElementById("lf-copy")}, card.form_i18n);
+  }
+
+  paint(EMBEDDED);
+})();
+</script>

@@ -30,7 +30,8 @@
 *{box-sizing:border-box}
 body{background:var(--bk-bg);color:var(--bk-fg);
   font-family:var(--bk-sans);font-size:1rem;line-height:1.6;-webkit-font-smoothing:antialiased}  /* 1rem = --fs-base, the one base size: line 5, the copy of bin/athlete.py:document */
-.wrap{width:min(860px,92vw);margin:0 auto;padding:0 0 6rem;display:flex;flex-direction:column;gap:2.5rem}
+.wrap{width:min(860px,92vw);margin:0 auto;padding:0 0 6rem;display:flex;flex-direction:column;gap:2.5rem;
+  counter-reset:q}
 input,textarea,.mono{font-family:var(--bk-mono)}
 
 header{padding:3.25rem 0 0;display:flex;flex-direction:column;gap:.9rem}
@@ -61,7 +62,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 section{display:flex;flex-direction:column;gap:.15rem}
 .shead{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;padding-bottom:.5rem;
   border-bottom:var(--bk-bw) solid var(--bk-fg)}
-.snum{font-family:var(--bk-mono);font-size:.8rem;color:var(--bk-muted-fg)}
 h2{font-size:1.4rem;margin:0;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
 .tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--bk-on-color);
   border:2px solid var(--bk-fg);padding:.06rem .4rem}
@@ -72,6 +72,11 @@ h2{font-size:1.4rem;margin:0;font-weight:800;letter-spacing:.04em;text-transform
 .q{display:flex;flex-direction:column;gap:.3rem;padding:.8rem 0;border-bottom:2px solid var(--bk-muted)}
 label{display:flex;flex-direction:column;gap:.15rem;cursor:pointer}
 label .qn{font-size:1.02rem;font-weight:700;color:var(--bk-fg)}
+/* Questions are numbered 1… across the whole form, so a runner can keep their place
+   (owner, 2026-10-05). Counted by CSS, not written in the markup: a question added later
+   renumbers everything after it, and no number in the source can go stale. Sections carry
+   no number. Answers travel by key (data-q), never by number. */
+label .qn::before{counter-increment:q;content:counter(q) ". ";font-variant-numeric:tabular-nums}
 label .hint{font-size:.86rem;color:var(--bk-muted-fg);font-style:italic;font-weight:400}
 /* BoldKit's input: framed, square; the shadow arrives with the focus */
 input[type=text],textarea{width:100%;background:var(--bk-card);color:var(--bk-fg);border:2px solid var(--bk-fg);
@@ -92,6 +97,17 @@ section.safety h2{color:var(--bk-danger)}
   display:flex;flex-direction:column;gap:.8rem}
 .actions{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
 .saved{font-family:var(--bk-mono);font-size:.78rem;color:#16794A}   /* a text green: BoldKit's success fill is unreadable as text */
+
+/* Import: the way back in for answers copied out earlier — a start-of-session act, so it sits
+   in the header, under its own button, and not in the sticky bar: a third button there wrapped
+   the bar to a third row at phone width (157 → 220px, measured 2026-10-05), on screen for the
+   whole form; and a sticky box taller than a phone with its keyboard up cannot scroll. */
+.importer{border:var(--bk-bw) solid var(--bk-fg);background:var(--bk-muted);box-shadow:var(--bk-shadow);
+  padding:.85rem 1.1rem;display:flex;flex-direction:column;gap:.6rem;font-size:.95rem}
+.importer p{margin:0;max-width:64ch}
+.importer textarea{min-height:9rem}
+.import-status{font-family:var(--bk-mono);font-size:.8rem;color:var(--bk-muted-fg)}
+.import-status:empty{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -102,7 +118,17 @@ section.safety h2{color:var(--bk-danger)}
   <h1>Ultra Training Intake</h1>
   <p class="lede">Everything needed to build a personalised endurance plan — and to know when the honest answer is “see a doctor first.” Answer what you can; the last section is for everything we forgot to ask. Two answers matter more than the rest: your name, which is how your plan is kept separate from everyone else's, and <em>which edition</em> of the race — the year sets how long the plan is, and therefore what shape it takes.</p>
   <div class="howto">
-    <b>How to use it.</b> Sections marked <span class="tag core">core</span> are the minimum for a safe, useful plan — answer those first. <span class="tag deeper">deeper</span> sections sharpen it. Your answers save in this browser as you type. When you're done, press <b>Copy all answers</b> and paste them back into the conversation.
+    <b>How to use it.</b> Sections marked <span class="tag core">core</span> are the minimum for a safe, useful plan — answer those first. <span class="tag deeper">deeper</span> sections sharpen it. Your answers save in this browser as you type. When you're done, press <b>Copy all answers</b> and paste them back into the conversation. Answers you copied and saved earlier come back with <b>Import saved answers</b>, just below — on this device or another.
+  </div>
+  <div class="actions"><button class="ghost" id="import" aria-expanded="false" aria-controls="import-panel">Import saved answers</button></div>
+  <div class="importer" id="import-panel" hidden>
+    <p><b>Import saved answers.</b> Paste the text <b>Copy all answers</b> gave you, then press <b>Import answers</b>. Each answer goes back into its own question; a question the text does not mention keeps what you have typed here.</p>
+    <textarea id="import-text" aria-label="Saved answers to import" placeholder="# Training intake — answers&#10;&#10;## Your name&#10;&#10;**Name**&#10;…"></textarea>
+    <p class="import-status" id="import-status" aria-live="polite"></p>
+    <div class="actions">
+      <button id="import-ok">Import answers</button>
+      <button class="ghost" id="import-cancel">Cancel</button>
+    </div>
   </div>
 </header>
 
@@ -114,16 +140,16 @@ section.safety h2{color:var(--bk-danger)}
   <span class="saved" id="saved"></span>
 </div>
 
-<section data-s="WHO · Your name">
-  <div class="shead"><span class="snum">·</span><h2>Your name</h2><span class="tag core">core</span></div>
+<section data-s="Your name">
+  <div class="shead"><h2>Your name</h2><span class="tag core">core</span></div>
   <p class="snote">First, so everything that follows is filed against you and nobody else. Your name becomes your own folder — your profile, your log, your plan. Nothing you write here can reach another runner's training, and nothing of theirs reaches yours.</p>
   <div class="q"><label><span class="qn">What should we call you?</span><span class="hint">A first name is enough. It is kept as-is and never reused for anyone else.</span></label><input type="text" data-q="Name" placeholder="e.g. Alex"></div>
   <div class="q"><label><span class="qn">Which language should your plan be written in?</span><span class="hint">English, Italiano, Deutsch, Français or Español. Everything you will read — the plan page, the daily card, the day-by-day calendar — is written in it. This questionnaire is English only; answer it in whichever language you like.</span></label><input type="text" data-q="Preferred language" placeholder="e.g. Italiano"></div>
 </section>
 
-<section class="safety" data-s="0 · Before anything else">
-  <div class="shead"><span class="snum">00</span><h2>Before anything else</h2><span class="tag core">core</span></div>
-  <div class="gate"><b>Stop rule.</b> If you answer yes to any of the first four questions, the right next step is a doctor, not a training plan. Endurance training is a real cardiac load and a plan built over an unexamined symptom is worse than no plan.</div>
+<section class="safety" data-s="Before anything else">
+  <div class="shead"><h2>Before anything else</h2><span class="tag core">core</span></div>
+  <div class="gate"><b>Stop rule.</b> If you answer yes to any of the next four questions, the right next step is a doctor, not a training plan. Endurance training is a real cardiac load and a plan built over an unexamined symptom is worse than no plan.</div>
   <div class="q"><label><span class="qn">Have you ever had chest pain, pressure or unusual breathlessness during exertion?</span><span class="hint">Yes / no — and if yes, what happened and was it investigated?</span></label><textarea data-q="Chest pain or breathlessness on exertion"></textarea></div>
   <div class="q"><label><span class="qn">Have you ever fainted, blacked out or become seriously dizzy while exercising?</span></label><textarea data-q="Fainting or dizziness while exercising"></textarea></div>
   <div class="q"><label><span class="qn">Any diagnosed heart condition, high blood pressure, or family history of sudden cardiac death under 50?</span></label><textarea data-q="Cardiac history, personal or family"></textarea></div>
@@ -135,8 +161,8 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">Have you had a medical check or clearance for endurance training? When?</span></label><input type="text" data-q="Medical clearance and date"></div>
 </section>
 
-<section data-s="1 · The race">
-  <div class="shead"><span class="snum">01</span><h2>The race</h2><span class="tag core">core</span></div>
+<section data-s="The race">
+  <div class="shead"><h2>The race</h2><span class="tag core">core</span></div>
   <p class="snote">Everything downstream scales off this. If there's a race page, the link alone answers most of it.</p>
   <div class="q"><label><span class="qn">Race name, <b>which edition/year</b>, and link</span><span class="hint">The year matters more than anything else on this page. It decides how long the plan is and therefore what shape it takes — a build for 30 weeks and a build for 80 are different plans, not the same plan stretched.</span></label><input type="text" data-q="Race name, edition/year, URL" placeholder="e.g. UTMB CCC, 2027 edition, https://…"></div>
   <div class="q"><label><span class="qn">Is the exact date published yet, or estimated?</span><span class="hint">If the edition isn’t announced, say so — we estimate from the previous edition and re-check. Everything downstream is measured in weeks-to-race, so a shift of a fortnight costs nothing.</span></label><input type="text" data-q="Race date and whether confirmed or estimated"></div>
@@ -151,18 +177,18 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">Any other races planned before this one?</span><span class="hint">Useful — a mid-plan rehearsal race is one of the best training sessions available.</span></label><input type="text" data-q="Other races planned"></div>
 </section>
 
-<section data-s="2 · You">
-  <div class="shead"><span class="snum">02</span><h2>You</h2><span class="tag core">core</span></div>
+<section data-s="You">
+  <div class="shead"><h2>You</h2><span class="tag core">core</span></div>
   <div class="q"><label><span class="qn">Age</span></label><input type="text" data-q="Age"></div>
-  <div class="q"><label><span class="qn">Sex at birth. If female: is your cycle regular (roughly monthly), irregular (over five weeks apart), or absent (three or more missed in a row)? Are you on hormonal contraception? Are your periods heavy?</span><span class="hint">Not idle curiosity: with the bone question in section 00, these drive iron, bone and energy-availability decisions — the most commonly missed parts of an endurance plan. Contraception hides the cycle signal, so say if you use it. An absent cycle never refuses you a plan; it gets a doctor involved and the plan is held, not cancelled.</span></label><textarea data-q="Sex at birth; cycle status (regular / irregular / absent); hormonal contraception; heavy periods" rows="2"></textarea></div>
+  <div class="q"><label><span class="qn">Sex at birth. If female: is your cycle regular (roughly monthly), irregular (over five weeks apart), or absent (three or more missed in a row)? Are you on hormonal contraception? Are your periods heavy?</span><span class="hint">Not idle curiosity: with the bone question in “Before anything else”, these drive iron, bone and energy-availability decisions — the most commonly missed parts of an endurance plan. Contraception hides the cycle signal, so say if you use it. An absent cycle never refuses you a plan; it gets a doctor involved and the plan is held, not cancelled.</span></label><textarea data-q="Sex at birth; cycle status (regular / irregular / absent); hormonal contraception; heavy periods" rows="2"></textarea></div>
   <div class="q"><label><span class="qn">Height and weight</span></label><input type="text" data-q="Height and weight" placeholder="e.g. 178 cm, 71 kg"></div>
   <div class="q"><label><span class="qn">Has your weight moved much in the last six months?</span><span class="hint">Direction and rough amount. A drifting weight during heavy training is a warning sign worth catching early.</span></label><input type="text" data-q="Weight trend over 6 months"></div>
   <div class="q"><label><span class="qn">Where do you live, and at what elevation?</span><span class="hint">Town or region is enough. It sets your climate, daylight and terrain.</span></label><input type="text" data-q="Location and home elevation"></div>
   <div class="q"><label><span class="qn">What does your working day look like physically?</span><span class="hint">Desk-bound, on your feet, manual, shift work, lots of travel?</span></label><input type="text" data-q="Occupation and daily physical load"></div>
 </section>
 
-<section data-s="3 · Running history">
-  <div class="shead"><span class="snum">03</span><h2>Running history</h2><span class="tag core">core</span></div>
+<section data-s="Running history">
+  <div class="shead"><h2>Running history</h2><span class="tag core">core</span></div>
   <div class="q"><label><span class="qn">How long have you been running, and how consistently?</span></label><input type="text" data-q="Years running and consistency"></div>
   <div class="q"><label><span class="qn">Right now: how many km or hours a week, over how many days?</span></label><input type="text" data-q="Current weekly volume and running days"></div>
   <div class="q"><label><span class="qn">Longest run in the last three months — distance, time and ascent</span></label><input type="text" data-q="Longest run in last 3 months"></div>
@@ -175,8 +201,8 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">Have you run at night, or on no sleep? How did you cope?</span></label><textarea data-q="Night running and sleep-deprived running experience"></textarea></div>
 </section>
 
-<section data-s="4 · Terrain access">
-  <div class="shead"><span class="snum">04</span><h2>Terrain access</h2><span class="tag core">core</span></div>
+<section data-s="Terrain access">
+  <div class="shead"><h2>Terrain access</h2><span class="tag core">core</span></div>
   <p class="snote">For any mountainous race this is the single biggest constraint on what's achievable. A plan that assumes hills you don't have is fiction.</p>
   <div class="q"><label><span class="qn">What can you reach from your door, on foot or with a short drive?</span><span class="hint">Flat, rolling, hills, real mountains? How long is the longest continuous climb?</span></label><textarea data-q="Terrain reachable from home; longest continuous climb"></textarea></div>
   <div class="q"><label><span class="qn">How much ascent do you currently do in a typical week?</span></label><input type="text" data-q="Current weekly vertical gain"></div>
@@ -185,16 +211,16 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">How comfortable are you descending, and on technical ground?</span><span class="hint">Confident, cautious, or actively nervous? No wrong answer — it's trainable.</span></label><textarea data-q="Descending and technical terrain confidence"></textarea></div>
 </section>
 
-<section data-s="5 · Altitude">
-  <div class="shead"><span class="snum">05</span><h2>Altitude</h2><span class="tag deeper">deeper</span></div>
+<section data-s="Altitude">
+  <div class="shead"><h2>Altitude</h2><span class="tag deeper">deeper</span></div>
   <p class="snote">Skip this if your race stays low. Above roughly 2500 m it stops being a performance question and becomes a safety one.</p>
   <div class="q"><label><span class="qn">What's the highest altitude you've been to, and how did you feel?</span><span class="hint">Your own history is the best available predictor — better than fitness.</span></label><textarea data-q="Highest altitude reached and how you responded"></textarea></div>
   <div class="q"><label><span class="qn">Ever had altitude sickness — headache, nausea, poor sleep, breathlessness at rest?</span></label><textarea data-q="Altitude sickness history"></textarea></div>
   <div class="q"><label><span class="qn">Can you spend time at altitude before the race, or arrive several days early?</span></label><textarea data-q="Pre-race altitude exposure possible"></textarea></div>
 </section>
 
-<section data-s="6 · Cross-training and strength">
-  <div class="shead"><span class="snum">06</span><h2>Cross-training and strength</h2><span class="tag core">core</span></div>
+<section data-s="Cross-training and strength">
+  <div class="shead"><h2>Cross-training and strength</h2><span class="tag core">core</span></div>
   <div class="q"><label><span class="qn">What else do you do, and how much?</span><span class="hint">Cycling, climbing, swimming, skiing, gym — type, frequency, and roughly how hard.</span></label><textarea data-q="Other sports and activities, frequency and intensity"></textarea></div>
   <div class="q"><label><span class="qn">Which of those are protected, and which can be dropped when volume gets high?</span><span class="hint">Important. A plan that quietly deletes the thing you love is a plan you'll abandon.</span></label><textarea data-q="Protected vs droppable activities"></textarea></div>
   <div class="q"><label><span class="qn">Strength training: what's your experience, and what can you lift?</span><span class="hint">Working loads if you know them; “never touched a barbell” is an equally useful answer.</span></label><textarea data-q="Strength training experience and working loads"></textarea></div>
@@ -203,8 +229,8 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">Five minutes, in front of a mirror or a phone camera: the strength assessment</span><span class="hint">Watching the knee from the front, stop at the first test that fails. <b>1. Air squat</b> to parallel, feet shoulder width &mdash; fail: the knees cave inward on the way down or up. <b>2. Box step</b> onto a box just below knee height, toes no more than 30 cm from it &mdash; fail: the knee drifts inward more than about 2.5 cm, or the hip swings out. <b>3. One-leg sit-to-stand</b> from a bench at 90&deg;, torso upright &mdash; fail: the knee drifts in more than about 2.5 cm. Then two for the core: <b>a strict plank</b> to loss of form (under 30 s / 30&ndash;60 s / over 60 s) and <b>straight-leg windshield wipers</b> lying on your back (none / under 5 a side / more). Say which test failed first, or that all three were clean, plus the plank time and the wiper count. It decides the first rung of your strength programme; skipped, the programme starts at technique first.</span></label><textarea data-q="Strength assessment: air squat / box step / one-leg sit-to-stand, plank, wipers"></textarea></div>
 </section>
 
-<section data-s="7 · How you like to train">
-  <div class="shead"><span class="snum">07</span><h2>How you like to train</h2><span class="tag core">core</span></div>
+<section data-s="How you like to train">
+  <div class="shead"><h2>How you like to train</h2><span class="tag core">core</span></div>
   <div class="q"><label><span class="qn">How do you want effort prescribed — perceived effort, heart rate, or pace?</span><span class="hint">There's no wrong answer, but pick one. Mixing them is how plans get confusing.</span></label><input type="text" data-q="Preferred effort metric (RPE / HR / pace)"></div>
   <div class="q"><label><span class="qn">What devices do you use, and what do you actually look at?</span></label><input type="text" data-q="Devices used and metrics actually used"></div>
   <div class="q"><label><span class="qn">Would you train twice in a day? Do you already?</span></label><input type="text" data-q="Willingness to do doubles"></div>
@@ -213,8 +239,8 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">What do you genuinely enjoy, and what do you dread?</span><span class="hint">A plan full of sessions you hate is a plan you won't finish. This is a real design input.</span></label><textarea data-q="Sessions enjoyed vs dreaded"></textarea></div>
 </section>
 
-<section data-s="8 · Time and life">
-  <div class="shead"><span class="snum">08</span><h2>Time and life</h2><span class="tag core">core</span></div>
+<section data-s="Time and life">
+  <div class="shead"><h2>Time and life</h2><span class="tag core">core</span></div>
   <div class="q"><label><span class="qn">Realistically, how many hours a week can you train?</span><span class="hint">The number you'd still hit in a bad week, not the one on a good week.</span></label><input type="text" data-q="Realistic weekly training hours"></div>
   <div class="q"><label><span class="qn">Which days, and how long on each?</span></label><textarea data-q="Available days and duration per day"></textarea></div>
   <div class="q"><label><span class="qn">At what time of day do you usually train — and what is your earliest realistic start?</span><span class="hint">Before work, lunchtime, evening; per day if it differs, e.g. “weekdays 06:00, Saturday 07:30”. It decides how long before a session the card tells you to eat, and lets it warn you when a late session is followed by an early one.</span></label><textarea data-q="Usual training times and earliest start"></textarea></div>
@@ -222,8 +248,8 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">What will disrupt training, and when?</span><span class="hint">Work trips, holidays, family commitments, known busy periods. Naming them now means the plan bends instead of breaking.</span></label><textarea data-q="Known disruptions and unavailable weeks"></textarea></div>
 </section>
 
-<section data-s="9 · Daily life load">
-  <div class="shead"><span class="snum">09</span><h2>Daily life load</h2><span class="tag core">core</span></div>
+<section data-s="Daily life load">
+  <div class="shead"><h2>Daily life load</h2><span class="tag core">core</span></div>
   <p class="snote">Most plans count only sessions, and then wonder why you’re flat on Tuesday. For a race measured in time on feet, the rest of your day isn’t noise — it’s load, and some of it is unusually specific training.</p>
   <div class="q"><label><span class="qn">Roughly how many hours a day are you on your feet — all in, work and home?</span><span class="hint">A rough average and a bad-day figure. This goes into the weekly budget beside training hours, not next to it.</span></label><input type="text" data-q="Hours per day on feet"></div>
   <div class="q"><label><span class="qn">How do you get to work, and how long?</span><span class="hint">Walk, cycle, drive, train. A walking or cycling commute is real aerobic volume the plan should credit rather than ignore.</span></label><input type="text" data-q="Commute mode and duration"></div>
@@ -233,8 +259,8 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">Anything else physical that isn’t “training”?</span><span class="hint">Dance, martial arts, manual hobbies, physical caregiving.</span></label><textarea data-q="Other non-training physical activity"></textarea></div>
 </section>
 
-<section data-s="10 · Health, injury and recovery">
-  <div class="shead"><span class="snum">10</span><h2>Health, injury and recovery</h2><span class="tag core">core</span></div>
+<section data-s="Health, injury and recovery">
+  <div class="shead"><h2>Health, injury and recovery</h2><span class="tag core">core</span></div>
   <div class="q"><label><span class="qn">Injury history — what, when, and does it come back?</span><span class="hint">Recurring injuries shape the plan far more than old one-off ones.</span></label><textarea data-q="Injury history and recurrence"></textarea></div>
   <div class="q"><label><span class="qn">Ongoing conditions, allergies or asthma?</span></label><textarea data-q="Chronic conditions, allergies, asthma"></textarea></div>
   <div class="q"><label><span class="qn">Supplements you take now</span></label><input type="text" data-q="Current supplements"></div>
@@ -244,8 +270,8 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">Alcohol — roughly how much, how often?</span></label><input type="text" data-q="Alcohol intake"></div>
 </section>
 
-<section data-s="11 · Food and fuelling">
-  <div class="shead"><span class="snum">11</span><h2>Food and fuelling</h2><span class="tag core">core</span></div>
+<section data-s="Food and fuelling">
+  <div class="shead"><h2>Food and fuelling</h2><span class="tag core">core</span></div>
   <div class="q"><label><span class="qn">How do you eat?</span><span class="hint">Omnivore, vegetarian, vegan, pescatarian — and how firm is it? Eggs, dairy, fish specifically.</span></label><textarea data-q="Dietary pattern and how strict"></textarea></div>
   <div class="q"><label><span class="qn">Anything you can't eat, or won't?</span><span class="hint">Allergies, intolerances, and plain dislikes. Dislikes count — you won't eat it at hour fourteen either.</span></label><textarea data-q="Allergies, intolerances, dislikes"></textarea></div>
   <div class="q"><label><span class="qn">What does a normal eating day look like?</span><span class="hint">Meal times, whether you skip breakfast, how much you cook.</span></label><textarea data-q="Typical daily eating pattern"></textarea></div>
@@ -258,8 +284,8 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">Any weight or body composition goal?</span><span class="hint">Worth saying plainly so it can be timed safely, rather than colliding with the heaviest training.</span></label><input type="text" data-q="Weight or body composition goals"></div>
 </section>
 
-<section data-s="12 · Kit and logistics">
-  <div class="shead"><span class="snum">12</span><h2>Kit and logistics</h2><span class="tag core">worth it</span></div>
+<section data-s="Kit and logistics">
+  <div class="shead"><h2>Kit and logistics</h2><span class="tag core">worth it</span></div>
   <div class="q"><label><span class="qn">What kit do you already own, and what's missing?</span><span class="hint">Vest, poles, headlamps, waterproofs, shoes and how many pairs.</span></label><textarea data-q="Kit owned vs needed"></textarea></div>
   <div class="q"><label><span class="qn">What has gone wrong for you before?</span><span class="hint">Blisters, chafing, cramp, cold, getting lost, a dead head torch. The unglamorous list is where races are lost.</span></label><textarea data-q="Past race problems"></textarea></div>
   <div class="q"><label><span class="qn">Have you ever dropped out of a race? What happened?</span></label><textarea data-q="DNF history and cause"></textarea></div>
@@ -267,16 +293,16 @@ section.safety h2{color:var(--bk-danger)}
   <div class="q"><label><span class="qn">What is realistic on cost and travel?</span><span class="hint">Asked because plans quietly assume it: a training trip, a rehearsal race abroad, arriving days early, three pairs of shoes, blood tests. If some of that is not happening, the plan should be built without it rather than around it.</span></label><textarea data-q="Budget and travel constraints"></textarea></div>
 </section>
 
-<section data-s="13 · Head">
-  <div class="shead"><span class="snum">13</span><h2>Head</h2><span class="tag core">worth it</span></div>
+<section data-s="Head">
+  <div class="shead"><h2>Head</h2><span class="tag core">worth it</span></div>
   <div class="q"><label><span class="qn">Why this race?</span><span class="hint">Genuinely useful. On a bad February morning, the answer is what gets you out.</span></label><textarea data-q="Why this race"></textarea></div>
   <div class="q"><label><span class="qn">What worries you most about it?</span></label><textarea data-q="Biggest worry about the race"></textarea></div>
   <div class="q"><label><span class="qn">When things have gone badly before, what actually helped?</span><span class="hint">Everyone gets a low patch in a long race. Knowing your own way out is trainable.</span></label><textarea data-q="What helps you through low patches"></textarea></div>
   <div class="q"><label><span class="qn">How do you want to be held to it?</span><span class="hint">Firm and direct, gently, or left alone unless something's wrong?</span></label><input type="text" data-q="Preferred accountability style"></div>
 </section>
 
-<section data-s="14 · Anything else">
-  <div class="shead"><span class="snum">14</span><h2>Anything else</h2><span class="tag core">core</span></div>
+<section data-s="Anything else">
+  <div class="shead"><h2>Anything else</h2><span class="tag core">core</span></div>
   <p class="snote">The two sections above are marked <em>worth it</em> rather than optional for a reason: what has gone wrong for you before, and what you are worried about, are usually the most load-bearing answers on the whole form. Races are lost to cold, blisters and a dead head torch far more often than to fitness. <br><br>The most useful box on the page. No structure, no right answer.</p>
   <div class="q"><label><span class="qn">Tell me anything we haven't asked about.</span><span class="hint">Quirks, superstitions, something that worked before, something you already know breaks you, constraints that don't fit a box above.</span></label><textarea data-q="Anything else" style="min-height:8rem"></textarea></div>
   <div class="q"><label><span class="qn">What should we have asked, and didn't?</span><span class="hint">This one improves the questionnaire itself — every answer here becomes a question for the next person.</span></label><textarea data-q="What we should have asked but didn't"></textarea></div>
@@ -287,8 +313,8 @@ section.safety h2{color:var(--bk-danger)}
     <button id="copy2">Copy all answers</button>
     <span class="saved" id="saved2"></span>
   </div>
-  <p>Your answers are stored only in this browser. Nothing is sent anywhere — copy them out when you're ready.</p>
-  <p><em>This questionnaire helps build a training plan. It is not a medical assessment, and no plan built from it replaces clinical advice. If anything in section 00 gave you pause, start with a doctor.</em></p>
+  <p>Your answers are stored only in this browser. Nothing is sent anywhere — copy them out when you're ready. Saved as text, they come back with <b>Import saved answers</b> at the top of the page.</p>
+  <p><em>This questionnaire helps build a training plan. It is not a medical assessment, and no plan built from it replaces clinical advice. If anything under “Before anything else” gave you pause, start with a doctor.</em></p>
 </div>
 
 </div>
@@ -374,6 +400,78 @@ section.safety h2{color:var(--bk-danger)}
       navigator.clipboard.writeText(text).then(function(){ note("copied"); }, fallback);
     } else fallback();
   }
+
+  // Import: the way back in for text Copy produced — another device, a cleared browser, a
+  // form filled in two sittings. It reads exactly what build() writes: a **key** line per
+  // answer, the answer under it (blank lines and all), section headings in between. Matched
+  // by key, never by position or number, so the question order can change and an old saved
+  // file still lands; a key the form no longer has is named, never dropped silently.
+  function parse(text){
+    var known = {}, got = {}, unknown = [], key = null, buf = [];
+    fields.forEach(function(f){ known[f.getAttribute("data-q")] = true; });
+    function flush(){
+      if (key === null) return;
+      // build() closes each answer with a blank line, and a section heading may follow it
+      while (buf.length && (!buf[buf.length - 1].trim() || /^## /.test(buf[buf.length - 1]))) buf.pop();
+      var v = buf.join("\n").trim();
+      if (v){ if (known[key]) got[key] = v; else if (unknown.indexOf(key) < 0) unknown.push(key); }
+      key = null; buf = [];
+    }
+    String(text).replace(/\r\n?/g, "\n").split("\n").forEach(function(line){
+      var m = /^\*\*([^*]+)\*\*$/.exec(line.trim());   // no key holds a *; "**a** and **b**" is an answer
+      if (m){ flush(); key = m[1].trim(); }
+      else if (key !== null) buf.push(line);
+    });
+    flush();
+    return { got: got, unknown: unknown };
+  }
+  var importBtn = document.getElementById("import"),
+      importPanel = document.getElementById("import-panel"),
+      importText = document.getElementById("import-text"),
+      importStatus = document.getElementById("import-status");
+  function plural(n, word){ return n + " " + word + (n === 1 ? "" : "s"); }
+  function preview(){
+    var p = parse(importText.value), found = Object.keys(p.got).length, replace = 0, msg = "";
+    fields.forEach(function(f){
+      var v = p.got[f.getAttribute("data-q")];
+      if (v !== undefined && f.value.trim() && f.value.trim() !== v) replace++;
+    });
+    if (found) msg = plural(found, "answer") + " found" +
+                     (replace ? " · " + replace + " will replace what you have typed here" : "");
+    else if (importText.value.trim()) msg = "no answers found — paste the text exactly as Copy all answers gave it";
+    if (p.unknown.length) msg += (msg ? " · " : "") + plural(p.unknown.length, "answer") +
+                                 " not matched to any question, left out: " + p.unknown.join(" / ");
+    importStatus.textContent = msg;
+    return p;
+  }
+  function openImport(){
+    importPanel.hidden = false;
+    importBtn.setAttribute("aria-expanded", "true");
+    preview();
+    importPanel.scrollIntoView({ block: "nearest" });
+    importText.focus({ preventScroll: true });
+  }
+  function closeImport(){
+    importPanel.hidden = true;
+    importBtn.setAttribute("aria-expanded", "false");
+    importText.value = "";
+    importStatus.textContent = "";
+  }
+  function doImport(){
+    var p = preview(), n = 0;
+    if (!Object.keys(p.got).length) return;   // the status line already says why
+    fields.forEach(function(f){
+      var v = p.got[f.getAttribute("data-q")];
+      if (v !== undefined){ f.value = v; mark(f); n++; }
+    });
+    save(); progress(); closeImport();
+    note("imported " + plural(n, "answer"));
+  }
+  importBtn.addEventListener("click", function(){ importPanel.hidden ? openImport() : closeImport(); });
+  importText.addEventListener("input", preview);
+  importText.addEventListener("keydown", function(e){ if (e.key === "Escape") closeImport(); });
+  document.getElementById("import-ok").addEventListener("click", doImport);
+  document.getElementById("import-cancel").addEventListener("click", closeImport);
 
   fields.forEach(function(f){
     f.addEventListener("input", function(){ mark(f); progress(); });

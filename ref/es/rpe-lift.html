@@ -432,12 +432,15 @@ h1{font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.05;margin:0;font-weight:800;
      tables. So every `##` of the session part is its own framed box, its heading the teal title
      bar — `## Strength` and `## Running` on a stacked day (bin/check.py:rule_card_sessions), the
      warm-up and the working sets `###` inside the first. Anything before the first `##` is a box
-     with no bar. ONE function for the daily card and the plan page's diary, so the two cannot
-     draw a session two ways; templates/lib/card.css styles it. */
+     with no bar — but only if it paints something: the card's H1 sits there and renders to
+     nothing (the page shows it in the masthead), and it drew an empty frame above Strength
+     (owner, 2026-10-13: "the empty borders of an empty section"). ONE function for the daily card
+     and the plan page's diary, so the two cannot draw a session two ways; card.css styles it. */
   function sessionBoxes(md) {
-    var parts = md.split(/^(?=##\s)/m), out = [];
+    var parts = md.split(/^(?=##\s)/m), out = [], h;
     for (var k = 0; k < parts.length; k++) {
-      if (parts[k].trim()) out.push('<section class="key session-box">' + render(parts[k]) + "</section>");
+      h = render(parts[k]);
+      if (h.trim()) out.push('<section class="key session-box">' + h + "</section>");
     }
     return out.join("\n");
   }

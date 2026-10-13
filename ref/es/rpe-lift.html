@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>:root{--fs-base:20px}html{font-size:var(--fs-base);color-scheme:light}body{margin:0;font:1rem/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#F2F4F3}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>RPE en el gimnasio — repeticiones en reserva · Referencias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800;900&display=swap">
+<style>
+/* THE REFERENCE PAGES (owner, 2026-10-13): the exercise library and the two RPE scales, the same
+   for every runner, built per language into <site>/ref/<lang>/ by bin/ref-embed.py and linked
+   from under every card's sessions. Each card used to carry the RPE tables and a link to
+   knowledge/exercise-library.md in the private repository — it opened for the owner only.
+   NEUBRUTALISM, as every page of the site: BoldKit's tokens, defined as the card's shell defines
+   them; the content is drawn by the card's own renderer and styled by its card.css. */
+:root{
+  --bk-fg:#17171C; --bk-bg:#FFFFFF; --bk-card:#FFFFFF; --bk-primary:#F37777; --bk-secondary:#49D4C6;
+  --bk-accent:#FFE46B; --bk-muted:#E6E6E2; --bk-muted-fg:#5C5C66; --bk-danger:#DC1313;
+  --bk-danger-fg:#FFFFFF; --bk-on-color:#17171C; --bk-bw:3px;
+  --bk-shadow:4px 4px 0 var(--bk-fg); --bk-shadow-sm:2px 2px 0 var(--bk-fg); --bk-shadow-lg:8px 8px 0 var(--bk-fg);
+  --bk-sans:"Outfit",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --bk-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--bk-bg);color:var(--bk-fg);margin:0;font-family:var(--bk-sans);font-size:1rem;
+  line-height:1.6;-webkit-font-smoothing:antialiased}
+.mono,code,pre{font-family:var(--bk-mono)}
+:focus-visible{outline:3px solid var(--bk-fg);outline-offset:3px}
+.stamp{position:sticky;top:0;z-index:10;background:var(--bk-fg);color:var(--bk-bg);font-family:var(--bk-mono);
+  font-size:.7rem;letter-spacing:.04em;padding:.3rem .7rem;display:flex;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+.stamp a{color:inherit}
+.wrap{width:min(92vw,max(680px,50vw));margin:0 auto;padding:1.6rem 0 5rem}
+header.card-head{display:flex;flex-direction:column;gap:.6rem;padding-bottom:1.1rem;
+  border-bottom:var(--bk-bw) solid var(--bk-fg);margin-bottom:1.2rem}
+.eyebrow{font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bk-muted-fg);margin:0}
+h1{font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.05;margin:0;font-weight:800;text-transform:uppercase;text-wrap:balance}
+/* The three pages, one tap apart — the card's reference buttons, the current one yellow. */
+.refs{display:flex;flex-wrap:wrap;gap:.6rem .7rem;margin:0 0 1.4rem}
+.refs a{display:inline-block;padding:.4rem .8rem;color:var(--bk-fg);background:var(--bk-card);
+  border:2px solid var(--bk-fg);box-shadow:var(--bk-shadow-sm);font-weight:800;font-size:.85rem;
+  letter-spacing:.05em;text-transform:uppercase;text-decoration:none}
+.refs a[aria-current="page"]{background:var(--bk-accent);color:var(--bk-on-color)}
+.intro{margin:0 0 1.4rem}
+/* ============================================================================
+   templates/lib/card.css — HOW A CARD LOOKS, wherever it is shown: the daily card page
+   (templates/daily-card.shell.html) and the plan page's diary, the panel under an open day
+   (every plan shell, from templates/plan.skeleton.html). Spliced into each page's <style> at
+   build time by bin/card-embed.py and bin/plan-embed.py, at a line that says @@include card.css
+   inside a comment — one copy, so the diary cannot drift from the card (owner, 2026-10-02:
+   "could we use the same exact styles already used for the single today card?").
+
+   Every rule is scoped under .card, or names the folds and the session box, so the plan page's
+   own styles keep their elements and these keep the card's. Where a plan page's global rule
+   would reach a card element (every section a flex column, every table framed, every
+   paragraph capped at 66ch) a reset here says no. The tokens (--bk-*) are each page's own,
+   defined identically in both.
+   ============================================================================ */
+/* --- the rendered card --- */
+.card h2{font-size:1.3rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  margin:2.1rem 0 .7rem;padding-bottom:.35rem;border-bottom:var(--bk-bw) solid var(--bk-fg);text-wrap:balance}
+.card h3{font-size:.95rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--bk-fg);margin:1.5rem 0 .5rem}
+.card p{margin:0 0 .85rem;max-width:none}
+.card ul,.card ol{margin:0 0 .95rem;padding-left:1.15rem;display:flex;
+  flex-direction:column;gap:.32rem}
+.card strong{font-weight:700}
+.card a{color:var(--bk-fg);text-decoration-thickness:2px;text-underline-offset:2px;word-break:break-word}
+.card blockquote{margin:1.1rem 0;padding:.8rem 1rem;border:var(--bk-bw) solid var(--bk-fg);
+  background:var(--bk-muted);box-shadow:var(--bk-shadow);font-size:.96rem}
+.card blockquote.warn{background:var(--bk-accent);color:var(--bk-on-color)}
+.card blockquote p:last-child{margin-bottom:0}
+.card code{font-size:.88em;background:var(--bk-muted);padding:.08em .32em}
+.card pre{background:var(--bk-card);border:var(--bk-bw) solid var(--bk-fg);box-shadow:var(--bk-shadow);
+  padding:.75rem .9rem;overflow-x:auto;font-size:.85rem;line-height:1.5;margin:1rem 0}
+.card pre code{background:none;padding:0}
+/* BoldKit's table: the frame and the shadow on the wrapper (its own overflow does not clip its
+   shadow), the header muted, bold and uppercase. Row rules 2px rather than BoldKit's 3px — the
+   fuel tables are dense — and no zebra. */
+.card .scroll{overflow-x:auto;margin:1rem 0 1.3rem;padding:0;border:var(--bk-bw) solid var(--bk-fg);
+  box-shadow:var(--bk-shadow);background:var(--bk-card)}
+.card table{border-collapse:collapse;width:100%;font-size:.87rem;border:0;box-shadow:none;background:none}
+.card th,.card td{text-align:left;padding:.5rem .65rem;border-bottom:2px solid var(--bk-fg);
+  vertical-align:top}
+.card tbody tr:last-child td{border-bottom:0}
+.card th{font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.72rem;
+  color:var(--bk-fg);background:var(--bk-muted);border-bottom:var(--bk-bw) solid var(--bk-fg);white-space:nowrap}
+.card td:first-child{font-variant-numeric:tabular-nums}
+
+/* --- the accordions: the log form, Fuel today and the recap, ONE look (owner, 2026-10-02: "the
+   same exact style" as Log this session) — each selector below names the form's class and the
+   folds' together, so the three cannot drift apart. BoldKit's accordion: a framed, shadowed
+   item; a white header, bold and uppercase, muted under the pointer and YELLOW WHEN OPEN; the
+   body under a 3px rule; the caret at the right, drawn here from `aria-expanded` for all three
+   (log-form.js sets it on the form's toggle as fold() does on the card's folds, and foldHTML()
+   on the diary's). The folds' heading is the button, inside an H2 that adds nothing. --- */
+.fold-sec,.session-box{display:block}   /* a plan page makes every <section> a flex column */
+.logform,.fold-sec{margin:1.8rem 0 0;border:var(--bk-bw) solid var(--bk-fg);box-shadow:var(--bk-shadow);
+  background:var(--bk-card)}
+.lf-toggle,.fold{width:100%;display:flex;justify-content:space-between;align-items:center;gap:.8rem;
+  text-align:left;font-family:var(--bk-sans);font-size:1.05rem;font-weight:800;letter-spacing:.06em;
+  text-transform:uppercase;padding:.9rem 1rem;min-height:3rem;border:0;cursor:pointer;
+  background:var(--bk-card);color:var(--bk-fg)}
+.lf-body,.fold-body{padding:.9rem 1rem .2rem;border-top:var(--bk-bw) solid var(--bk-fg)}
+.card h2.fold-h{margin:0;padding:0;border:0}
+.lf-toggle::after,.fold::after{content:"▾";font-size:1.15em;line-height:1}
+@media (hover:hover){.lf-toggle:hover,.fold:hover{background:var(--bk-muted)}}
+.lf-toggle[aria-expanded="true"],.fold[aria-expanded="true"]{background:var(--bk-accent);color:var(--bk-on-color)}
+.lf-toggle[aria-expanded="true"]::after,.fold[aria-expanded="true"]::after{content:"▴"}
+
+/* --- the KEY sections: the session and Log this session (owner, 2026-10-02: "more important
+   and should be highlighted more than the others"). BoldKit's card with a coloured header and its
+   deeper shadow, .bk-shadow-lg: each section of the session part — Strength, Running
+   (card-render.js:sessionBoxes, owner 2026-10-13: "two visually separated sections") — is its own
+   framed box whose heading is a teal title bar; the log form keeps the accordions' shared rules
+   above and only changes its header to coral, the action colour, open or closed (that rule is the
+   card page's: the diary has no form). Fuel today and the recap stay white at 4px. --- */
+.key{box-shadow:var(--bk-shadow-lg)}
+.session-box{--pad:1rem;border:var(--bk-bw) solid var(--bk-fg);background:var(--bk-card);padding:0 var(--pad) .2rem}
+.session-box + .session-box{margin-top:2rem}
+.session-box > h2:first-child{margin:0 calc(-1 * var(--pad)) .9rem;padding:.75rem var(--pad);
+  background:var(--bk-secondary);color:var(--bk-on-color);border-bottom:var(--bk-bw) solid var(--bk-fg)}
+.session-box > :first-child:not(h2){margin-top:.9rem}
+/* On a phone the box's padding and the cells' come in, so the session table keeps its width
+   inside the frame instead of scrolling sideways (measured at 500px wide, 2026-10-02). */
+@media (max-width:600px){
+  .session-box{--pad:.55rem}
+  .card th,.card td{padding:.42rem .45rem}
+}
+/* The library: a letter per section, an exercise per heading, its videos listed under it. */
+.card h3{margin:1.3rem 0 .3rem;text-transform:none;letter-spacing:.01em;font-size:1.05rem}
+.card ul{list-style:none;padding-left:0}
+.card li a{font-family:var(--bk-mono);font-size:.82rem}
+@media print{
+  :root{--bk-shadow:none;--bk-shadow-sm:none;--bk-shadow-lg:none;--bk-secondary:#FFFFFF;--bk-accent:#FFFFFF;--bk-muted:#FFFFFF}
+  .stamp,.refs{display:none}
+}
+</style>
+
+<div class="stamp"><span id="stampL">…</span><a id="homelink" href="../../">…</a></div>
+<div class="wrap" data-page="ref">
+  <header class="card-head">
+    <p class="eyebrow" id="eyebrow">&nbsp;</p>
+    <h1 id="title">…</h1>
+  </header>
+  <nav class="refs" id="refs"></nav>
+  <p class="intro" id="intro"></p>
+  <main class="card" id="ref"></main>
+</div>
+
+
+<script type="application/json" id="ref-data">{"lang": "es", "kind": "rpe_lift", "title": "RPE en el gimnasio — repeticiones en reserva", "intro": "", "markdown": "**RPE = 10 − repeticiones en reserva.** Las repeticiones en reserva son las que aún podrías haber hecho **con buena técnica** al soltar el peso. Las repeticiones que se deshacen no cuentan.\n\n| RPE | Repeticiones que aún podrías haber hecho | Dónde se usa |\n|---|---|---|\n| 10 | **0** — el fallo | **Nunca.** Una serie al fallo cuesta un día de carrera |\n| 9 | 1 más | Demasiado cerca — no se usa aquí |\n| 8 | **2 más** | La fase pesada |\n| 7 | 3 más | El extremo ligero de la fase pesada |\n| 6 | **4 más** | La fase de técnica |\n| 5 | 5 o más | Series de calentamiento |\n\n**Elige el peso, no juzga el esfuerzo.** Las repeticiones las fija la sesión, y el RPE dice qué peso usar. Al final de la última repetición, pregúntate con honestidad: *¿habría hecho cuatro más, con la misma técnica?*\n\n- **Sí, unas cuatro** → RPE 6. El peso correcto: mantenlo.\n- **Solo una o dos** → RPE 8-9. Demasiado pesado: quita peso en la siguiente serie.\n- **Diez más, fácilmente** → demasiado ligero. Añade carga, o baja más despacio, en 3-4 segundos.\n\n**Al principio tu estimación será imprecisa.** Hasta que hayas sentido algunas series cerca del final, quédate corto: un peso demasiado ligero no cuesta nada, uno demasiado pesado cuesta la técnica.\n\n> ⚠ **El mismo número significa lo contrario en las dos escalas.** RPE 6 en el gimnasio es cómodo — quedan cuatro repeticiones. RPE 6 corriendo es duro — solo frases cortas.\n", "eyebrow": "Referencia · la misma para cada corredor", "home_url": "../../", "nav": [{"kind": "library", "href": "library.html", "label": "ref_library"}, {"kind": "rpe_lift", "href": "rpe-lift.html", "label": "ref_rpe_lift"}, {"kind": "rpe_run", "href": "rpe-run.html", "label": "ref_rpe_run"}], "i18n": {"home": "Todos los corredores", "refs_title": "Referencias", "ref_library": "Biblioteca de ejercicios", "ref_rpe_lift": "RPE en el gimnasio", "ref_rpe_run": "RPE en carrera"}}</script>
+
+<script>
+(function () {
+  "use strict";
+  /* The page's content in a JSON island, as the card's: bin/ref-embed.py writes it, nothing else. */
+  var D = JSON.parse(document.getElementById("ref-data").textContent);
+  var T = D.i18n;
+  T.lang = D.lang;
+  document.documentElement.lang = D.lang || "en";
+
+  /* ============================================================================
+   SHARED between templates/daily-card.shell.html and every plan shell (through
+   templates/lib/plan-program.js, which includes it).
+
+   Spliced in at build time by bin/card-embed.py and bin/plan-embed.py, both of
+   which replace the one-line marker `//@@include card-render.js` with this file.
+   (Written inline here rather than on its own line: plan-embed.py resolves includes
+   recursively, and a bare marker in this comment would include this file in itself.)
+   It is never loaded over the network: these
+   pages are opened at 06:40 on a phone, sometimes on bad signal, and a blocked
+   script would leave raw markdown on the screen.
+
+   WHY IT IS SHARED. The plan page grew a day-by-day diary that renders the same
+   card markdown the daily card renders. Two copies of a markdown renderer is two
+   implementations of one rule, which is the drift docs/lessons.md records five
+   times over. The plan page also carried its own `pretty()` that formatted the
+   same ISO date differently ("7 Sep" against the card's "Fri 11 Sep") — both
+   spellings survive here, named apart, so neither page has to redefine one.
+
+   ES5 only, no dependencies, no globals beyond the names below. Both shells
+   splice it INSIDE their existing IIFE, so nothing here leaks to `window`.
+   ============================================================================ */
+
+  /* Local date, never toISOString() — that is UTC, so anywhere east of it the date flips
+     early and the page shows the wrong day late in the evening, which is exactly when
+     someone checks tomorrow's session before bed. */
+  function today() {
+    var d = new Date(), p = function (n) { return ("0" + n).slice(-2); };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  }
+  function daysBetween(a, b) {
+    return Math.round((Date.parse(b + "T00:00:00") - Date.parse(a + "T00:00:00")) / 864e5);
+  }
+  /* Every word this renderer and both pages say comes from `T`, the athlete's language
+     block out of templates/lib/i18n.json, carried in the JSON island as `i18n`. Each
+     shell defines `T` ABOVE this include. A missing key THROWS rather than painting
+     "undefined": the render tests execute the program, so an absent string fails the
+     build instead of shipping. */
+  function t(key, vars) {
+    var s = T[key];
+    if (s == null) throw new Error("i18n: no string for " + key + " in " + (T.lang || "?"));
+    return vars ? String(s).replace(/\{(\w+)\}/g, function (_, k) {
+      return vars[k] != null ? vars[k] : "{" + k + "}";
+    }) : s;
+  }
+  function plural(n, one, many) { return n === 1 ? t(one) : t(many); }
+  function pretty(iso) {
+    var d = new Date(iso + "T00:00:00");
+    return T.dow[d.getDay()] + " " + d.getDate() + " " + T.mon[d.getMonth()];
+  }
+  /* The daily card's spelling, in its title and in its status strip — one function, so the
+     two cannot show the date two ways (owner, 2026-10-02: "Friday 02 October 2026"). The
+     order and the words are the language's `date_long`, `dow_long` and `mon_long`. */
+  function prettyLong(iso) {
+    var p = iso.split("-"), d = new Date(iso + "T00:00:00");
+    var s = t("date_long", {dow: T.dow_long[d.getDay()], dd: p[2], mon: T.mon_long[+p[1] - 1], yyyy: p[0]});
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  /* The calendar's own spelling — no weekday, because the row already carries one. */
+  function prettyShort(iso) {
+    var p = iso.split("-");
+    return (+p[2]) + " " + T.mon[+p[1] - 1];
+  }
+  /* A day row's weekday, from the date, in the athlete's language. It used to be a
+     three-letter English string emitted by plan-embed.py — a second owner of the same
+     fact the date already carries. */
+  function dow(iso) { return T.dow[new Date(iso + "T00:00:00").getDay()]; }
+
+  /* ---- markdown, limited to what /today actually emits -------------------------
+     Written rather than pulled from a CDN: this page is opened at 06:40 on a phone,
+     sometimes on bad signal, and a blocked script would leave raw markdown on screen. */
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function inline(s) {
+    return esc(s)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2">$2</a>')
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  }
+  function cells(row) {
+    return row.replace(/^\||\|$/g, "").split("|").map(function (c) { return c.trim(); });
+  }
+
+  /* ---- the five-minute strength test box ------------------------------------------
+     bin/strength-test.py decides whether the test is due (never done, a retest two weeks
+     after stage 1 or 2, a new block, a layoff) and puts it in the payload as
+     `strength_test`; the card gets it only on a strength day. ONE painter for both pages,
+     here, because both include this file — two painters would be two readings of one rule.
+     Every word is from `T` (i18n.json, `st_*`); every video from exercise-library.md. */
+  function paintStrengthTest(S, el) {
+    if (!el) return;
+    if (!S || !S.show) { el.className = ""; el.innerHTML = ""; return; }
+    var V = S.videos || {};
+    function vids(ids) {
+      var n = 0, out = [];
+      ids.forEach(function (id) {
+        (V[id] || []).forEach(function (u) {
+          n++; out.push('<a href="' + esc(u).replace(/"/g, "&quot;") + '" target="_blank" rel="noopener">▶ ' + n + "</a>");
+        });
+      });
+      return out.join(" · ") || "—";
+    }
+    function table(head, rows) {
+      return '<div class="scroll"><table><thead><tr>' + head.map(function (h) {
+        return "<th>" + esc(h) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        rows.map(function (r) { return "<tr>" + r.map(function (c, i) {
+          return "<td>" + (c && typeof c === "object" ? c.html : esc(String(c))) + "</td>"; }).join("") + "</tr>";
+        }).join("") + "</tbody></table></div>";
+    }
+    function v(ids) { return { html: vids(ids) }; }
+    var L = S.last, st = [];
+    if (S.reason === "never") st.push(t("st_status_never"));
+    else if (S.reason === "retest") st.push(t("st_status_retest", { stage: L.strength_stage, date: pretty(L.date) }));
+    else if (S.reason === "block") st.push(t("st_status_block", { date: pretty(L.date) }));
+    else if (S.reason === "layoff") st.push(t("st_status_layoff", { date: pretty(S.since) }));
+    else if (L) st.push(t("st_status_last", { stage: L.strength_stage, date: pretty(L.date) }));
+    if (S.physio && L) st.push(t("st_status_physio", { stage: L.strength_stage }));
+
+    var legs = table(["#", t("st_th_test"), t("st_th_how"), t("st_th_fail"), t("st_th_result"), t("st_th_video")], [
+      ["1", t("st_squat_name"), t("st_squat_how"), t("st_squat_fail"), t("st_fail_to", { stage: 1 }), v(["air-squat-test"])],
+      ["2", t("st_box_name"), t("st_box_how"), t("st_box_fail"), t("st_fail_to", { stage: 2 }), v(["box-step-test", "step-up"])],
+      ["3", t("st_sit_name"), t("st_sit_how"), t("st_sit_fail"), t("st_fail_to", { stage: 3 }), v(["one-leg-sit-to-stand"])],
+      ["—", t("st_all_clean"), "", "", t("st_clean"), { html: "" }]]);
+    var core = table([t("st_th_test"), t("st_th_how"), t("st_th_result"), t("st_th_video")], [
+      [t("st_plank_name"), t("st_plank_how"), t("st_plank_result"), v(["plank-to-form"])],
+      [t("st_wiper_name"), t("st_wiper_how"), t("st_wiper_result"), v(["windshield-wiper"])]]);
+    var changes = table([t("st_th_result"), t("st_th_changes"), t("st_th_video")], [
+      [t("st_res_clean_name"), t("st_res_clean_do"), { html: "—" }],
+      [t("st_res_1_name"), t("st_res_1_do"), v(["banded-squat", "single-leg-lateral-band"])],
+      [t("st_res_2_name"), t("st_res_2_do"), v(["step-up", "eccentric-step-down", "front-lunge"])],
+      [t("st_res_physio_name"), t("st_res_physio_do"), { html: "—" }]]);
+
+    el.className = "strength-test" + (S.physio ? " physio" : "");
+    el.innerHTML = "<h2>⚠ " + esc(t("st_title")) + "</h2>" +
+      st.map(function (s) { return '<p class="st-status"><b>' + esc(s) + "</b></p>"; }).join("") +
+      "<p>" + esc(t("st_why")) + "</p><p>" + esc(t("st_how")) + "</p>" +
+      "<h3>" + esc(t("st_legs_head")) + "</h3>" + legs +
+      "<h3>" + esc(t("st_core_head")) + "</h3>" + core + "<p>" + esc(t("st_core_rule")) + "</p>" +
+      "<h3>" + esc(t("st_changes_head")) + "</h3>" + changes +
+      "<p>" + esc(t("st_report")).replace("{cmd}", "<code>/log</code>") + "</p>" +
+      "<pre><code>" + esc(t("st_report_example")) + "</code></pre>" +
+      "<p>" + esc(t("st_when")) + "</p>";
+  }
+  function render(md) {
+    var lines = md.replace(/\r/g, "").split("\n"), out = [], i = 0;
+    function flushList(tag, items) {
+      out.push("<" + tag + ">" + items.map(function (x) {
+        return "<li>" + inline(x) + "</li>"; }).join("") + "</" + tag + ">");
+    }
+    while (i < lines.length) {
+      var L = lines[i];
+      if (!L.trim()) { i++; continue; }
+
+      var h = /^(#{1,4})\s+(.*)$/.exec(L);
+      if (h) {                                   // the card's H1 is the page title already
+        if (h[1].length > 1) {
+          out.push("<h" + h[1].length + ">" + inline(h[2]) + "</h" + h[1].length + ">");
+        }
+        i++; continue;
+      }
+      if (/^\s{4,}\S/.test(L)) {                 // indented block — a code example
+        var pre = [];
+        while (i < lines.length && (/^\s{4,}/.test(lines[i]) || !lines[i].trim())) {
+          if (lines[i].trim()) pre.push(lines[i].replace(/^\s{4}/, ""));
+          else if (pre.length && /^\s{4,}/.test(lines[i + 1] || "")) pre.push("");
+          else break;
+          i++;
+        }
+        out.push("<pre><code>" + esc(pre.join("\n")) + "</code></pre>");
+        continue;
+      }
+      if (/^\|/.test(L) && /^\|[\s:|-]+\|$/.test(lines[i + 1] || "")) {
+        var head = cells(L); i += 2; var body = [];
+        while (i < lines.length && /^\|/.test(lines[i])) { body.push(cells(lines[i])); i++; }
+        out.push('<div class="scroll"><table><thead><tr>' +
+          head.map(function (c) { return "<th>" + inline(c) + "</th>"; }).join("") +
+          "</tr></thead><tbody>" + body.map(function (r) {
+            return "<tr>" + r.map(function (c) { return "<td>" + inline(c) + "</td>"; }).join("") + "</tr>";
+          }).join("") + "</tbody></table></div>");
+        continue;
+      }
+      if (/^\|/.test(L)) {                        // rows with no header and no |---| line —
+        var rows = [];                           // "| Totals | ~280 g | ~126 g |" (mobile §29)
+        while (i < lines.length && /^\|/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
+        out.push('<div class="scroll"><table><tbody>' + rows.map(function (r) {
+          return "<tr>" + r.map(function (c) { return "<td>" + inline(c) + "</td>"; }).join("") + "</tr>";
+        }).join("") + "</tbody></table></div>");
+        continue;
+      }
+      if (/^>\s?/.test(L)) {
+        var q = [];
+        while (i < lines.length && /^>\s?/.test(lines[i])) { q.push(lines[i].replace(/^>\s?/, "")); i++; }
+        var text = q.join("\n"), warn = /⚠/.test(text) ? " warn" : "";
+        out.push('<blockquote class="q' + warn + '">' + render(text) + "</blockquote>");
+        continue;
+      }
+      if (/^\s*[-*·]\s+/.test(L)) {
+        var ul = [];
+        while (i < lines.length && /^\s*[-*·]\s+/.test(lines[i])) {
+          var item = lines[i].replace(/^\s*[-*·]\s+/, ""); i++;
+          while (i < lines.length && /^\s{2,}\S/.test(lines[i]) && !/^\s*[-*·]\s+/.test(lines[i]) &&
+                 !/^\s{4,}\S/.test(lines[i])) { item += " " + lines[i].trim(); i++; }
+          ul.push(item);
+        }
+        flushList("ul", ul); continue;
+      }
+      if (/^\s*\d+\.\s+/.test(L)) {
+        var ol = [];
+        while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+          var it = lines[i].replace(/^\s*\d+\.\s+/, ""); i++;
+          while (i < lines.length && /^\s{2,}\S/.test(lines[i]) && !/^\s*\d+\.\s+/.test(lines[i])) {
+            it += " " + lines[i].trim(); i++;
+          }
+          ol.push(it);
+        }
+        flushList("ol", ol); continue;
+      }
+      var para = [];
+      while (i < lines.length && lines[i].trim() && !/^[#>|]/.test(lines[i]) &&
+             !/^\s*([-*·]|\d+\.)\s+/.test(lines[i]) && !/^\s{4,}\S/.test(lines[i])) {
+        para.push(lines[i].trim()); i++;
+      }
+      // A line no branch above took ("##### x", "#tag") must still be consumed: without this
+      // `i` never moved and the page spun forever — two model cards did that (mobile §29).
+      if (!para.length) { para.push(lines[i].trim()); i++; }
+      out.push("<p>" + inline(para.join(" ")) + "</p>");
+    }
+    return out.join("\n");
+  }
+
+  /* ---- the card cut for display (owner, 2026-10-02) ------------------------------------
+     ONE cut, for the daily card and the plan page's diary, so the two show a card the same
+     way: the session part — everything before the fuel section — open; then the fuel section
+     (from the language's `fuel_heading`, verbatim, optionally followed by a subtitle, to the
+     next H2) and every section after it, each folded, the recap — `recap_heading` — LAST
+     wherever it was written: cards archived before 2026-10-02 carry it first, and an old
+     card's "Afterwards" becomes a fold of its own. Nothing is dropped. No fuel section: the
+     whole card is the session part and nothing folds. */
+  function cutCard(md) {
+    var lines = md.split("\n"), secs = [{title: "", lines: []}], k, h;
+    for (k = 0; k < lines.length; k++) {
+      h = /^##\s+(.+)$/.exec(lines[k]);
+      if (h) secs.push({title: h[1], lines: []});
+      else secs[secs.length - 1].lines.push(lines[k]);
+    }
+    var fuel = -1, recap = -1;
+    for (k = 1; k < secs.length; k++) {
+      if (fuel < 0 && secs[k].title.indexOf(t("fuel_heading")) === 0) fuel = k;
+      if (recap < 0 && secs[k].title.indexOf(t("recap_heading")) === 0) recap = k;
+    }
+    if (fuel < 0) return {session: md, fuelTitle: "", fuel: "", folds: []};
+    var session = [], folds = [];
+    for (k = 0; k < fuel; k++) {
+      if (k !== recap) session.push((secs[k].title ? "## " + secs[k].title + "\n" : "") + secs[k].lines.join("\n"));
+    }
+    for (k = fuel + 1; k < secs.length; k++) {
+      if (k !== recap) folds.push({title: secs[k].title, md: secs[k].lines.join("\n")});
+    }
+    if (recap >= 0) folds.push({title: secs[recap].title, md: secs[recap].lines.join("\n")});
+    return {session: session.join("\n"), fuelTitle: secs[fuel].title,
+            fuel: secs[fuel].lines.join("\n"), folds: folds};
+  }
+
+  /* ---- the session part, one KEY box per section (owner, 2026-10-13) --------------------
+     "When there are 2 sessions in the today card … clearly separate them in two visually
+     separated sections, Strength and Running": the run was a paragraph lost under the strength
+     tables. So every `##` of the session part is its own framed box, its heading the teal title
+     bar — `## Strength` and `## Running` on a stacked day (bin/check.py:rule_card_sessions), the
+     warm-up and the working sets `###` inside the first. Anything before the first `##` is a box
+     with no bar. ONE function for the daily card and the plan page's diary, so the two cannot
+     draw a session two ways; templates/lib/card.css styles it. */
+  function sessionBoxes(md) {
+    var parts = md.split(/^(?=##\s)/m), out = [];
+    for (var k = 0; k < parts.length; k++) {
+      if (parts[k].trim()) out.push('<section class="key session-box">' + render(parts[k]) + "</section>");
+    }
+    return out.join("\n");
+  }
+
+  /* A folded section, as a string — the diary's. The daily card's #fuel and #recap are this
+     markup written into its shell and painted by its fold(); templates/lib/card.css styles both.
+     `key` names the fold for the page's delegated click; it is CLOSED unless `open`. */
+  function foldHTML(key, title, bodyHtml, open) {
+    return '<section class="card fold-sec"><h2 class="fold-h"><button type="button" class="fold"' +
+      ' data-fold="' + esc(key) + '" aria-expanded="' + (open ? "true" : "false") + '"><span>' +
+      inline(title) + '</span></button></h2><div class="fold-body"' + (open ? "" : " hidden") + ">" +
+      bodyHtml + "</div></section>";
+  }
+
+  function paint(D) {
+    document.getElementById("stampL").textContent = t("refs_title");
+    var hl = document.getElementById("homelink");
+    hl.textContent = t("home");
+    hl.href = D.home_url;
+    document.getElementById("eyebrow").textContent = D.eyebrow;
+    document.getElementById("title").textContent = D.title;
+    document.getElementById("intro").innerHTML = D.intro ? inline(D.intro) : "";
+    document.getElementById("refs").innerHTML = D.nav.map(function (n) {
+      return '<a href="' + esc(n.href).replace(/"/g, "&quot;") + '"' + (n.kind === D.kind ? ' aria-current="page"' : "") +
+        ">" + esc(t(n.label)) + "</a>";
+    }).join("");
+    document.getElementById("ref").innerHTML = render(D.markdown);
+  }
+
+  paint(D);
+})();
+</script>

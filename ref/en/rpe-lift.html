@@ -8,9 +8,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800;900&display=swap">
 <style>
-/* THE REFERENCE PAGES (owner, 2026-10-13): the exercise library and the two RPE scales, the same
-   for every runner, built per language into <site>/ref/<lang>/ by bin/ref-embed.py and linked
-   from under every card's sessions. Each card used to carry the RPE tables and a link to
+/* THE REFERENCE PAGES (owner, 2026-10-13): the exercise library, the two RPE scales and (2026-10-19)
+   the race types, the same for every runner, built per language into <site>/ref/<lang>/ by
+   bin/ref-embed.py and linked from under every card's sessions. Each card used to carry the RPE tables and a link to
    knowledge/exercise-library.md in the private repository — it opened for the owner only.
    NEUBRUTALISM, as every page of the site: BoldKit's tokens, defined as the card's shell defines
    them; the content is drawn by the card's own renderer and styled by its card.css. */
@@ -35,7 +35,7 @@ header.card-head{display:flex;flex-direction:column;gap:.6rem;padding-bottom:1.1
   border-bottom:var(--bk-bw) solid var(--bk-fg);margin-bottom:1.2rem}
 .eyebrow{font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bk-muted-fg);margin:0}
 h1{font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.05;margin:0;font-weight:800;text-transform:uppercase;text-wrap:balance}
-/* The three pages, one tap apart — the card's reference buttons, the current one yellow. */
+/* The four pages, one tap apart — the card's reference buttons, the current one yellow. */
 .refs{display:flex;flex-wrap:wrap;gap:.6rem .7rem;margin:0 0 1.4rem}
 .refs a{display:inline-block;padding:.4rem .8rem;color:var(--bk-fg);background:var(--bk-card);
   border:2px solid var(--bk-fg);box-shadow:var(--bk-shadow-sm);font-weight:800;font-size:.85rem;
@@ -149,7 +149,7 @@ h1{font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.05;margin:0;font-weight:800;
 </div>
 
 
-<script type="application/json" id="ref-data">{"lang": "en", "kind": "rpe_lift", "title": "Lifting RPE — reps in reserve", "intro": "", "markdown": "**RPE = 10 − reps in reserve.** Reps in reserve are the reps you could still have done **with good form** when you put the weight down. Reps that break down do not count.\n\n| RPE | Reps you could still have done | Where it is used |\n|---|---|---|\n| 10 | **0** — failure | **Never.** A failed set costs a run day |\n| 9 | 1 more | Too close — not used here |\n| 8 | **2 more** | The heavy phase |\n| 7 | 3 more | The lighter end of the heavy phase |\n| 6 | **4 more** | The technique phase |\n| 5 | 5 or more | Warm-up sets |\n\n**It picks the weight; it does not rate the effort.** The reps are fixed by the session, and the RPE says which weight to use. At the end of the last rep, ask honestly: *could I have done four more, with the same form?*\n\n- **Yes, about four more** → RPE 6. The right weight: keep it.\n- **Only one or two more** → RPE 8-9. Too heavy: take weight off for the next set.\n- **Ten more, easily** → too light. Add load, or slow the lowering to 3-4 seconds.\n\n**Expect your estimate to be poor at first.** Until you have felt a few sets close to the end, err lighter: a weight that is too light costs nothing, one that is too heavy costs form.\n\n> ⚠ **The same number means opposite things on the two scales.** Lifting RPE 6 is comfortable — four reps left. Running RPE 6 is hard — short phrases only.\n", "eyebrow": "Reference · the same for every runner", "home_url": "../../", "nav": [{"kind": "library", "href": "library.html", "label": "ref_library"}, {"kind": "rpe_lift", "href": "rpe-lift.html", "label": "ref_rpe_lift"}, {"kind": "rpe_run", "href": "rpe-run.html", "label": "ref_rpe_run"}], "i18n": {"home": "All runners", "refs_title": "Reference", "ref_library": "Exercise library", "ref_rpe_lift": "Lifting RPE", "ref_rpe_run": "Running RPE"}}</script>
+<script type="application/json" id="ref-data">{"lang": "en", "kind": "rpe_lift", "title": "Lifting RPE — reps in reserve", "intro": "", "markdown": "**RPE = 10 − reps in reserve.** Reps in reserve are the reps you could still have done **with good form** when you put the weight down. Reps that break down do not count.\n\n| RPE | Reps you could still have done | Where it is used |\n|---|---|---|\n| 10 | **0** — failure | **Never.** A failed set costs a run day |\n| 9 | 1 more | Too close — not used here |\n| 8 | **2 more** | The heavy phase |\n| 7 | 3 more | The lighter end of the heavy phase |\n| 6 | **4 more** | The technique phase |\n| 5 | 5 or more | Warm-up sets |\n\n**It picks the weight; it does not rate the effort.** The reps are fixed by the session, and the RPE says which weight to use. At the end of the last rep, ask honestly: *could I have done four more, with the same form?*\n\n- **Yes, about four more** → RPE 6. The right weight: keep it.\n- **Only one or two more** → RPE 8-9. Too heavy: take weight off for the next set.\n- **Ten more, easily** → too light. Add load, or slow the lowering to 3-4 seconds.\n\n**Expect your estimate to be poor at first.** Until you have felt a few sets close to the end, err lighter: a weight that is too light costs nothing, one that is too heavy costs form.\n\n> ⚠ **The same number means opposite things on the two scales.** Lifting RPE 6 is comfortable — four reps left. Running RPE 6 is hard — short phrases only.\n", "eyebrow": "Reference · the same for every runner", "home_url": "../../", "nav": [{"kind": "library", "href": "library.html", "label": "ref_library"}, {"kind": "rpe_lift", "href": "rpe-lift.html", "label": "ref_rpe_lift"}, {"kind": "rpe_run", "href": "rpe-run.html", "label": "ref_rpe_run"}, {"kind": "races", "href": "race-types.html", "label": "ref_races"}], "i18n": {"home": "All runners", "refs_title": "Reference", "ref_library": "Exercise library", "ref_rpe_lift": "Lifting RPE", "ref_rpe_run": "Running RPE", "ref_races": "Race types"}}</script>
 
 <script>
 (function () {
